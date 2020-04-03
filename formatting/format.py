@@ -4,11 +4,15 @@ from os import listdir
 from os.path import dirname, abspath, join, isfile, isdir
 import re
 import string 
+import pickle
+
 char_to_remove = "—«»\t"
 words_to_replace = {
     "M. ":"Monsieur "
 }
 char_end_sentence = ".!?"
+
+last_intro_sequence = "Vous devez attribuer l’œuvre aux différents auteurs, y compris à Bibebook."
 
 root_dir = dirname(dirname(abspath(__file__)))
 data_dir = join(root_dir,"datasets")
@@ -17,10 +21,12 @@ frenchbooks_dir = join(data_dir, "livres-en-francais")
 def format_txt_book(path):
     book_file = open(path, encoding="utf-8")
 
-    # enlever le début 
+    # enlever le début
+    formatting = book_file.read()
+    formatting= formatting[formatting.rfind(last_intro_sequence)+len(last_intro_sequence):]
 
     # enlever les caractères indésirables
-    formatting = re.sub('['+char_to_remove+']','', book_file.read())
+    formatting = re.sub('['+char_to_remove+']','', formatting)
     # enlever les sauts de lignes
     formatting = re.sub('\n+',' ', formatting)
     # enlever les doubles espaces
@@ -52,9 +58,16 @@ for author in authors:
 
 french_books_dataframe = pd.DataFrame(french_books_data, columns=["Author","Book","Path"])
 
-formatted = format_txt_book(french_books_dataframe["Path"][0])
+sentences = []
 
-# changer le regex pour prendre en compte qu'avec des ! ou ? il y a un espace avant
-sentences = re.sub('['+char_end_sentence+'] ', '\n', formatted).split('\n') 
+for index, row in french_books_dataframe.iterrows():
+    print(row["Author"], "- ", row["Book"])
+    formatted = format_txt_book(row["Path"])
 
-print(sentences[:50])
+    # changer le regex pour prendre en compte qu'avec des ! ou ? il y a un espace avant
+    sentences.extend(re.sub('['+char_end_sentence+'] ', '\n', formatted).split('\n'))
+
+print("Nous avons pu extraire",len(sentences), "phrases")
+
+with open("saves/french_sentences.save", 'wb') as f:
+    pickle.dump(sentences, f)
