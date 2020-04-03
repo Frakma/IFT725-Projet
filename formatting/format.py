@@ -58,16 +58,19 @@ for author in authors:
 
 french_books_dataframe = pd.DataFrame(french_books_data, columns=["Author","Book","Path"])
 
-sentences = []
+all_sentences = []
 
 for index, row in french_books_dataframe.iterrows():
     print(row["Author"], "- ", row["Book"])
     formatted = format_txt_book(row["Path"])
 
     # changer le regex pour prendre en compte qu'avec des ! ou ? il y a un espace avant
-    sentences.extend(re.sub('['+char_end_sentence+'] ', '\n', formatted).split('\n'))
+    sentences = re.sub('['+char_end_sentence+'] ', '\n', formatted).split('\n')
+    sentences = [sentence.split() for sentence in sentences]
 
-print("Nous avons pu extraire",len(sentences), "phrases")
+    all_sentences.extend(sentences)
+
+print("Nous avons pu extraire",len(all_sentences), "phrases")
 
 with open("saves/french_sentences.save", 'wb') as f:
     pickle.dump(sentences, f)
