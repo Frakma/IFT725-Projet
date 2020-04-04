@@ -73,4 +73,4 @@ for index, row in french_books_dataframe.iterrows():
 print("Nous avons pu extraire",len(all_sentences), "phrases")
 
 with open("saves/french_sentences.save", 'wb') as f:
-    pickle.dump(sentences, f)
+    pickle.dump(all_sentences, f)

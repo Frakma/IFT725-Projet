@@ -1,6 +1,6 @@
 from gensim.models import Word2Vec
 import torch
-import pytorch.nn as nn
+import torch.nn as nn
 import pickle
 
 with open("saves/french_sentences.save", "rb") as f:
@@ -8,7 +8,7 @@ with open("saves/french_sentences.save", "rb") as f:
 
 word2vec = Word2Vec(french_sentences, min_count=2)
 
-print(word2vec.wv.most_similar('monsieur'))
+word2vec.wv.most_similar("livre")
 
 # https://stackabuse.com/time-series-prediction-using-lstm-with-pytorch-in-python/ 
 class LSTM(nn.Module):
@@ -28,3 +28,24 @@ class LSTM(nn.Module):
         predictions = self.linear(lstm_out.view(len(input_seq), -1))
         return predictions[-1]
 
+def get_data_from_sentence(sentence, length_train):
+    if len(sentence) < length_train + 1:
+        return None
+
+    data = []
+    target = []
+
+    index = 0
+    while length_train + index + 1 < len(sentence):
+        data_tmp = sentence[index:index+length_train]
+        target_tmp = sentence[index+length_train+1]
+
+        data.append(data_tmp)
+        target.append(target_tmp)
+
+        index += 1
+
+    return data, target
+
+print(french_sentences[0])
+print(get_data_from_sentence(french_sentences[0], 3))
