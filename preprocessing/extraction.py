@@ -11,9 +11,6 @@ class TextExtractor(ABC):
     def index_all_files(self, root_dir):
         pass
 
-    def trim_beginning(self, text_data):
-        pass
-
     def load_and_clean_file(self, path):
         pass
 
@@ -79,7 +76,9 @@ class FrenchTextExtractor(TextExtractor):
     def extract_sentences_from_text(self, text_data):
         # changer le regex pour prendre en compte qu'avec des ! ou ? il y a un espace avant
         sentences = re.sub('['+self.end_sequence_chars+'] ', '\n', text_data).split('\n')
-        sentences = [sentence.split() for sentence in sentences]
+
+        splitter = re.compile("[, ;.()]")
+        sentences = [splitter.split(sentence) for sentence in sentences]
 
         return sentences
 
@@ -96,3 +95,53 @@ class FrenchTextExtractor(TextExtractor):
             all_sentences.extend(sentences)
 
         return all_sentences
+
+class EnglishIMDB(TextExtractor):
+    def __init__(self):
+        self.end_sequence_chars = ".!?"
+        self.words_to_replace = {
+            "&":"and"
+        }
+        self.to_remove_chars = "«»\t\""
+
+    def index_all_files(self, root_dir):
+        self.file = join(root_dir,"IMDB_Dataset.csv")
+
+    def trim_beginning(self, text_data):
+        pass
+
+    def load_and_clean_file(self, path):
+        dataset = pd.read_csv(self.file)
+
+        formatting = ' '.join(dataset["review"].values)
+
+        formatting = re.sub('['+self.to_remove_chars+']','', formatting)
+        formatting = re.sub('<.*?>','', formatting)
+
+        for word in self.words_to_replace:
+            formatting = re.sub(word, self.words_to_replace[word], formatting)
+
+        return formatting
+
+    def extract_sentences_from_text(self, text_data):
+        # changer le regex pour prendre en compte qu'avec des ! ou ? il y a un espace avant
+        sentences = re.sub('['+self.end_sequence_chars+']', '\n', text_data).split('\n')
+
+        splitter = re.compile("[, -;.()]")
+
+        sentences = [splitter.split(sentence) for sentence in sentences]
+
+        removed_empty = []
+        for sentence in sentences:
+            removed_empty.append([x for x in sentence if len(x) > 0])
+
+        sentences = [x for x in removed_empty if len(x) > 0]
+
+        return sentences
+
+    def extract_sentences_indexed_files(self):
+        data = self.load_and_clean_file(self.file)
+
+        sentences = self.extract_sentences_from_text(data)
+
+        return sentences

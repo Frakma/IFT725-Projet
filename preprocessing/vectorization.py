@@ -18,25 +18,28 @@ class Vectorizer(ABC):
         pass
 
     def transform_sentences(self, sentences):
-        pass
+        vectorized_sentences = []
+        for sentence in sentences:
+            vectorized_sentence = []
+            for word in sentence:
+                vectorized_sentence.append(self.transform_value(word))
+
+            vectorized_sentences.append(vectorized_sentences)
+
+        return vectorized_sentences
 
 class Word2VecVectorizer(Vectorizer):
     def __init__(self, save_path):
         self.save_path = save_path
 
     def create_vectorization(self, sentences):
-        wordvecmodel = Word2Vec(sentences, min_count=2)
-        self.wv = wordvecmodel.wv
+        self.model = Word2Vec(sentences, min_count=1, workers=4)
     
     def save_vectorization(self):
-        with open(self.save_path, "wb") as f:
-            self.wv.save(f)
+        self.model.save(self.save_path)
 
     def load_vectorization(self):
-        self.wv = KeyedVectors.load(self.save_path, mmap='r')
+        self.model = Word2Vec.load(self.save_path)
         
     def transform_value(self, value):
-        return self.wv[value]
-
-    def transform_sentences(self, sentences):
-        pass
+        return self.model[value]
