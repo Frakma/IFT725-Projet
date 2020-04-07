@@ -1,9 +1,19 @@
 class DataCreator:
+    """Class with create training/test data with labels
+    """
     def __init__(self, sentences, length_train):
         self.sentences = sentences
         self.length_train = length_train
 
     def get_data_from_sentence(self, sentence):
+        """Function which create data tokens and labels
+
+            Parameters:
+            sentence (list): list of words
+
+            Returns:
+            tuple:data and labels
+        """
         if len(sentence) < self.length_train + 1:
             return None
 
@@ -23,6 +33,14 @@ class DataCreator:
         return data, target
 
     def tokenize_sentences(self):
+        """Function which create data tokens and labels
+
+            Parameters:
+            sentences (list): list of sentences of words
+
+            Returns:
+            tuple:data and labels
+        """
         data = []
         labels = []
 

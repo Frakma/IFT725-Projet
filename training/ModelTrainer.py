@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from torch.utils.data import  DataLoader
+from typing import Callable, Type
+import warnings
 
 #on a utilisé la structure du tp3
 class ModelTrainer(object):
@@ -12,7 +14,6 @@ class ModelTrainer(object):
                  batch_size=1,
                  validation=None,
                  use_cuda=False):        
-        
         
                
         device_name = 'cuda:0' if use_cuda else 'cpu'
@@ -48,7 +49,6 @@ class ModelTrainer(object):
         self.metric_values['val_acc'] = []
 
         self.train_loader = DataLoader(self.data_train, batch_size, shuffle=True)
-
 
         for epoch in range(num_epochs):  # loop over the dataset multiple times
             running_loss = 0.0
