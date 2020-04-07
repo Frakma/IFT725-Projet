@@ -8,16 +8,45 @@ import string
 from abc import ABC, abstractmethod
 
 class TextExtractor(ABC):
+    """Abstract class which needs to be inherited for each type of documents
+    """
+
     def index_all_files(self, root_dir):
+        """Function to search files to parse
+
+            Parameters:
+            root_dir (string): String which represents the folder of the files to parse
+        """
         pass
 
     def load_and_clean_file(self, path):
+        """Function to load and prepare the text
+
+            Parameters:
+            path (string): String which represents the file to load and prepare
+
+            Returns:
+            string:The text data which has been cleaned
+        """
         pass
 
     def extract_sentences_from_text(self, text_data):
+        """Function which transform a string into a list of list of words
+
+            Parameters:
+            text_data (string): text data to 
+
+            Returns:
+            list:List of list of words
+        """
         pass
 
     def extract_sentences_indexed_files(self):
+        """Function which transform all indexed files
+
+            Returns:
+            list:List of list of words
+        """
         pass
 
 class FrenchTextExtractor(TextExtractor):

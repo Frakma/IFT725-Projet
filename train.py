@@ -4,13 +4,25 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 #import torchvision.transforms as transforms
-from ModelTrainer import ModelTrainer, optimizer_setup
+from training.ModelTrainer import ModelTrainer, optimizer_setup
+
+from sklearn.model_selection import train_test_split
 
 from models.LSTM import LSTM
 from models.RNN import RNN
-from models.GRU import GRU
+# from models.GRU import GRU
 
-#from torchvision import datasets
+from preprocessing.extraction import FrenchTextExtractor
+from preprocessing.extraction import EnglishIMDB
+from preprocessing.vectorization import Word2VecVectorizer
+from preprocessing.tokenization import DataCreator
+
+from os.path import dirname, join, abspath
+
+import pickle
+
+root_dir = dirname(abspath(__file__))
+data_dir = join(root_dir,"datasets")
 
 def argument_parser():
     """
@@ -22,11 +34,14 @@ def argument_parser():
     parser.add_argument('--model', type=str, default="LSTM",
                         choices=["LSTM", "RNN", "GRU"])
 
-    parser.add_argument('--dataset', type=str, default="Tragédies en français", choices=["Tragédies en français","Critiques de films en anglais",
-                    "Articles de Medium", 'Textes religieux et philosophiques', 'Paroles de chansons'])
+    parser.add_argument('--dataset', type=str, default="french-tragedies", choices=["french-tragedies","english-reviews"])
 
-    parser.add_argument('--batch_size', type=int, default=20,
-                        help='The size of the training batch')
+    parser.add_argument('--word_encoding', type=str, default="word2vec", choices=["word2vec","onehot"])
+
+    parser.add_argument('--sequence_size', type=int, default=20, help='The size of the sequence')
+
+    parser.add_argument('--batch_size', type=int, default=20,                        
+                            help='The size of the training batch')
     parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"],
                         help="The optimizer to use for training the model")
     parser.add_argument('--num-epochs', type=int, default=10,
@@ -48,14 +63,48 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    # Download the data
-    data_set_name = args.dataset
+    # Extract the sentences
+    if args.dataset == "french-tragedies":
+        directory = join(data_dir, "livres-en-francais")
+        extractor = FrenchTextExtractor()
+    elif args.dataset == "english-reviews":
+        directory = join(data_dir, "critiques-imdb")
+        extractor = EnglishIMDB()
+    
+    extractor.index_all_files(directory)
+    sentences = extractor.extract_sentences_indexed_files()
 
-    #Apply preprocessing
+    print("Données extraites !")
 
-    #Split to train and test stets
-    train_set=[]  # ....
-    test_set=[]   # ....
+    # Vectorize the sentences
+    if args.word_encoding == "word2vec":
+        vectorizer = Word2VecVectorizer("word2vec.save")
+    elif args.word_encoding == "onehot":
+        vectorizer = Word2VecVectorizer("word2vec.save")
+
+    vectorizer.create_vectorization(sentences)
+
+    print("Vectorisation calculée !")
+
+    sentences = vectorizer.transform_sentences(sentences)
+
+    print("Données transformées !")
+
+    tokenizer = DataCreator(sentences, args.sequence_size)
+    data, labels = tokenizer.tokenize_sentences()
+
+    print("Données tokenizées !")
+
+    with open("data_save", 'wb') as f:
+        pickle.dump((data, labels), f)
+
+    train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
+
+    train_set = train_data, train_labels
+    test_set = test_data, test_labels
+
+    print(train_set)
+    print(test_set)
 
     if args.optimizer == 'SGD':
         optimizer_factory = optimizer_setup(torch.optim.SGD, lr=learning_rate, momentum=0.9)
@@ -69,8 +118,7 @@ if __name__ == "__main__":
     elif args.model == 'GRU':
         model = GRU()                # Rectifier  Arguments
 
-
-    model_trainer = ModelTrainer(model=model, data_train=train_test, data_test=test_set)
+    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set)
 
     if args.predict:        
         model_trainer.evaluate_on_test_set()

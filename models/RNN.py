@@ -16,4 +16,4 @@ class RNN(nn.Module):
         for i in range(1,n):
             self.Y.append(torch.tanh(torch.mm(self.Y[-1], self.w2) + torch.mm(input_seq[i], self.w1) + self.b))
 
-        return self.Y
+        return self.Y[-1]

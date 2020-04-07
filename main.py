@@ -8,8 +8,9 @@ import pickle
 
 root_dir = dirname(abspath(__file__))
 
-save_french_sentences_path = "saves/french_sentences.save"
 data_dir = join(root_dir,"datasets")
+
+save_french_sentences_path = "saves/french_sentences.save"
 
 # ## NOTE : à décommenter lorsqu'on ne charge pas des données existantes
 # frenchbooks_dir = join(data_dir, "livres-en-francais")
@@ -44,10 +45,8 @@ data_dir = join(root_dir,"datasets")
 # print(vectorizer.wv.most_similar("dormir"))
 
 moviereviews_dir = join(data_dir, "critiques-imdb")
-
 text_extractor = EnglishIMDB()
 text_extractor.index_all_files(moviereviews_dir)
-
 sentences = text_extractor.extract_sentences_indexed_files()
 print("Nous avons pu extraire", len(sentences), "phrases")
 
@@ -56,4 +55,4 @@ print(sentences[:50])
 vectorizer = Word2VecVectorizer("saves/reviews_word2vec.save")
 vectorizer.load_vectorization()
 
-vectorizer = vectorizer.transform_sentences(sentences)
+vectorizer = vectorizer.transform_sentences(sentences) 
