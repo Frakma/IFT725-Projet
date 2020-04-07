@@ -72,7 +72,7 @@ if __name__ == "__main__":
         extractor = EnglishIMDB()
     
     extractor.index_all_files(directory)
-    raw_sentences = extractor.extract_sentences_indexed_files()
+    sentences = extractor.extract_sentences_indexed_files()
 
     print("Données extraites !")
 
@@ -82,15 +82,15 @@ if __name__ == "__main__":
     elif args.word_encoding == "onehot":
         vectorizer = Word2VecVectorizer("word2vec.save")
 
-    vectorizer.create_vectorization(raw_sentences)
+    vectorizer.create_vectorization(sentences)
 
     print("Vectorisation calculée !")
 
-    vectorized_sentences = vectorizer.transform_sentences(raw_sentences)
+    sentences = vectorizer.transform_sentences(sentences)
 
     print("Données transformées !")
 
-    tokenizer = DataCreator(vectorized_sentences, args.sequence_size)
+    tokenizer = DataCreator(sentences, args.sequence_size)
     data, labels = tokenizer.tokenize_sentences()
 
     print("Données tokenizées !")
