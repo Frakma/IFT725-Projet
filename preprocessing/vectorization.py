@@ -43,3 +43,26 @@ class Word2VecVectorizer(Vectorizer):
         
     def transform_value(self, value):
         return self.model[value]
+
+class OneHotVector(Vectorizer):
+    def __init__(self, save_path):
+        self.save_path = save_path
+
+    def create_vectorization(self, sentences):
+        words=[]
+        for sentence in sentences:
+            words=words+sentence
+        values = array(words).reshape(-1,1)
+        onehot_encoder = OneHotEncoder(sparse=False)
+        onehot_encoder.fit_transform(vl)
+        self.model = onehot_encoder.fit_transform(values)
+        
+    
+    def save_vectorization(self):
+        self.model.save(self.save_path)
+
+    def load_vectorization(self):
+        self.model = onehot_encoder.pickle(self.save_path)
+        
+    def transform_value(self, value):
+        return self.model[value]
