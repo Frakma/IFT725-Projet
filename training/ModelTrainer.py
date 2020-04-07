@@ -1,12 +1,14 @@
 import torch
 import torch.nn as nn
+import tensorflow as tf
 import torch.optim as optim
+from typing import Callable, Type
 from sklearn.model_selection import train_test_split
 from torch.utils.data import  DataLoader
 from typing import Callable, Type
 import warnings
 
-#on a utilisé la structure du tp3
+#we followed the same steps used in tp3
 class ModelTrainer(object):
     def __init__(self, model, data_train, data_test,
                  loss_fn: torch.nn.Module,
@@ -90,11 +92,17 @@ class ModelTrainer(object):
         print('Finished Training')
 
     def accuracy(self, outputs, labels):
-        pass
+        acc=[]
+        for predicted, label in zip(outputs, labels):
+            m = tf.keras.metrics.Accuracy() 
+            _ = m.update_state(predicted, label) 
+            acc.append(m.result().numpy() )
+        
+        return np.mean(acc)
 
     def evaluate_on_validation_set(self):
         self.model.eval()
-        
+
         val_loader = DataLoader(self.data_validation, batch_size, shuffle=True)
         validation_loss = 0.0
         validation_losses = []
@@ -108,7 +116,7 @@ class ModelTrainer(object):
                 loss = self.criterion(outputs, labels)
                 validation_losses.append(loss.item())
 
-                validation_accuracies.append(self.accuracy(val_outputs, val_labels))
+                validation_accuracies.append(self.accuracy(outputs, labels))
                 validation_loss += loss.item()
 
         self.metric_values['val_loss'].append(np.mean(validation_losses))
@@ -122,9 +130,9 @@ class ModelTrainer(object):
 
     def evaluate_on_test_set(self):
         """
-        Evaluer le modele sur l'ensemble de test
-        retourne:
-            Accuracy du model sur l'ensemble de test
+        Evaluate the model on test set
+        return:
+            Test Accuracy 
         """
         test_loader = DataLoader(self.data_test, batch_size, shuffle=True)
         accuracies = 0
@@ -135,7 +143,33 @@ class ModelTrainer(object):
                 accuracies += self.accuracy(test_outputs, test_labels)
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
 
+    def plot_metrics(self):
+        """
+        Function that plots train and validation losses and accuracies after training phase
+        """
+        epochs = range(1, len(self.metric_values['train_loss']) + 1)
 
+        f = plt.figure(figsize=(10, 5))
+        ax1 = f.add_subplot(121)
+        ax2 = f.add_subplot(122)
+
+        # loss plot
+        ax1.plot(epochs, self.metric_values['train_loss'], '-o', label='Training loss')
+        ax1.plot(epochs, self.metric_values['val_loss'], '-o', label='Validation loss')
+        ax1.set_title('Training and validation loss')
+        ax1.set_xlabel('Epochs')
+        ax1.set_ylabel('Loss')
+        ax1.legend()
+
+        # accuracy plot
+        ax2.plot(epochs, self.metric_values['train_acc'], '-o', label='Training accuracy')
+        ax2.plot(epochs, self.metric_values['val_acc'], '-o', label='Validation accuracy')
+        ax2.set_title('Training and validation accuracy')
+        ax2.set_xlabel('Epochs')
+        ax2.set_ylabel('accuracy')
+        ax2.legend()
+        f.savefig('fig.png')
+        plt.show()
 
 
 def optimizer_setup(optimizer_class: Type[torch.optim.Optimizer], **hyperparameters) -> \
