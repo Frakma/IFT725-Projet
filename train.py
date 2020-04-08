@@ -64,29 +64,29 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    # Extract the sentences
-    if args.dataset == "french-tragedies":
-        directory = join(data_dir, "livres-en-francais")
-        extractor = FrenchTextExtractor()
-    elif args.dataset == "english-reviews":
-        directory = join(data_dir, "critiques-imdb")
-        extractor = EnglishIMDB()
+    # # Extract the sentences
+    # if args.dataset == "french-tragedies":
+    #     directory = join(data_dir, "livres-en-francais")
+    #     extractor = FrenchTextExtractor()
+    # elif args.dataset == "english-reviews":
+    #     directory = join(data_dir, "critiques-imdb")
+    #     extractor = EnglishIMDB()
     
-    extractor.index_all_files(directory)
-    sentences = extractor.extract_sentences_indexed_files()
+    # extractor.index_all_files(directory)
+    # sentences = extractor.extract_sentences_indexed_files()
 
-    ## NOTE : à décommenter lorsqu'on sauvegarde des données existantes
-    with open("saves/french_sentences.save", "wb") as f:
-        pickle.dump(sentences, f)
-    ##
-
-    # ## NOTE : à décommenter lorsqu'on charge des données existantes
-    # with open("saves/french_sentences.save", "rb") as f:
-    #     sentences = pickle.load(f)
+    # ## NOTE : à décommenter lorsqu'on sauvegarde des données existantes
+    # with open("saves/french_sentences.save", "wb") as f:
+    #     pickle.dump(sentences, f)
     # ##
 
+    ## NOTE : à décommenter lorsqu'on charge des données existantes
+    with open("saves/french_sentences.save", "rb") as f:
+        sentences = pickle.load(f)
+    ##
+
     # TODO ENLEVER Pour limiter la création de données et tester
-    sentences = sentences[:10000]
+    sentences = sentences[:100]
 
     print("Données extraites !")
 

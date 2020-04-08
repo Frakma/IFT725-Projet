@@ -90,7 +90,7 @@ class ModelTrainer(object):
 
                     # Save losses for plotting purposes
                     train_losses.append(loss.item())
-                    #train_accuracies.append(self.accuracy(outputs, labels))
+                    train_accuracies.append(self.accuracy(outputs, labels))
 
                     #train_loss += loss.items()
                     t.set_postfix(loss='{:05.3f}'.format(loss / (i + 1)))
@@ -110,8 +110,8 @@ class ModelTrainer(object):
         if self.word2vec is not None:
             acc=[]
             for predicted, label in zip(outputs, labels):
-                acc.append(self.word2vec.similar_by_vector(predicted.eval(), topn=1)[0][0] == self.word2vec.similar_by_vector(label.eval(), topn=1)[0][0])
-            return acc/len(acc)
+                acc.append(self.word2vec.similar_by_vector(predicted.detach().numpy(), topn=1)[0][0] == self.word2vec.similar_by_vector(label.detach().numpy(), topn=1)[0][0])
+            return sum(acc)/len(acc)
         else:
             correct = (outputs == labels).sum().item()
             return correct / labels.size(0)
