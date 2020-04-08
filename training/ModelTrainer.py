@@ -6,7 +6,11 @@ from typing import Callable, Type
 from sklearn.model_selection import train_test_split
 from torch.utils.data import  DataLoader
 from typing import Callable, Type
+from tqdm import tqdm
 import warnings
+import numpy as np
+import matplotlib as plt
+from torch.utils import data
 
 #we followed the same steps used in tp3
 class ModelTrainer(object):
@@ -16,8 +20,7 @@ class ModelTrainer(object):
                  batch_size=1,
                  validation=None,
                  use_cuda=False):        
-        
-               
+    
         device_name = 'cuda:0' if use_cuda else 'cpu'
         if use_cuda and not torch.cuda.is_available():
             warnings.warn("CUDA is not available. Suppress this warning by passing "
@@ -28,14 +31,12 @@ class ModelTrainer(object):
         self.device = torch.device(device_name)
         self.validation=validation
 
-        if self.validation is not None:
-            self.data_train , self.data_validation = train_test_split(data_train, test_size=0.2, shuffle=False)
-        else:
-            self.data_train = data_train
+        self.data_train = data.TensorDataset(torch.Tensor(data_train[0]),torch.Tensor(data_train[1]))
+        self.data_test = data.TensorDataset(torch.Tensor(data_test[0]),torch.Tensor(data_test[1]))
 
         self.model = model        
-        self.data_test = data_test
-        self.criterion = nn.CrossEntropyLoss()
+        self.batch_size = batch_size
+        self.loss_fn = loss_fn
         self.optimizer = optimizer_factory(self.model)
 
         self.model = self.model.to(self.device)
@@ -50,16 +51,19 @@ class ModelTrainer(object):
         self.metric_values['val_loss'] = []
         self.metric_values['val_acc'] = []
 
-        self.train_loader = DataLoader(self.data_train, batch_size, shuffle=True)
+        train_loader = DataLoader(self.data_train, self.batch_size, shuffle=True)
 
         for epoch in range(num_epochs):  # loop over the dataset multiple times
-            running_loss = 0.0
+            print("Epoch: {} of {}".format(epoch + 1, num_epochs))
+            train_loss = 0.0
 
             with tqdm(range(len(train_loader))) as t:
                 train_losses = []
                 train_accuracies = []
 
-                for i, data in enumerate(trainloader, 0):
+                print(len(train_loader))
+
+                for i, data in enumerate(train_loader, 0):
                     # get the inputs; data_train is a list of [inputs, labels]
                     inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
@@ -68,24 +72,23 @@ class ModelTrainer(object):
 
                     # forward + backward + optimize
                     outputs = self.model(inputs)
-                    loss = self.criterion(outputs, labels)
+                    loss = self.loss_fn(outputs, labels)
                     loss.backward()
+
                     self.optimizer.step()
 
                     # Save losses for plotting purposes
                     train_losses.append(loss.item())
                     train_accuracies.append(self.accuracy(outputs, labels))
 
-                    # print statistics
-                    running_loss += loss.item()
-                    if i % 2000 == 1999:    # print every 2000 mini-batches
-                        print('[%d, %5d] loss: %.3f' %
-                            (epoch + 1, i + 1, running_loss / 2000))
-                        running_loss = 0.0
+                    train_loss += loss.items()
+                    t.set_postfix(loss='{:05.3f}'.format(loss / (i + 1)))
+                    t.update()
             
             # evaluate the model on validation data after each epoch
             self.metric_values['train_loss'].append(np.mean(train_losses))
             self.metric_values['train_acc'].append(np.mean(train_accuracies))
+
             if self.validation is not None:
                 self.evaluate_on_validation_set()
 
@@ -103,7 +106,7 @@ class ModelTrainer(object):
     def evaluate_on_validation_set(self):
         self.model.eval()
 
-        val_loader = DataLoader(self.data_validation, batch_size, shuffle=True)
+        val_loader = DataLoader(self.data_validation, self.batch_size, shuffle=True)
         validation_loss = 0.0
         validation_losses = []
         validation_accuracies = []
@@ -134,7 +137,7 @@ class ModelTrainer(object):
         return:
             Test Accuracy 
         """
-        test_loader = DataLoader(self.data_test, batch_size, shuffle=True)
+        test_loader = DataLoader(self.data_test, self.batch_size, shuffle=True)
         accuracies = 0
         with torch.no_grad():
             for data in test_loader:

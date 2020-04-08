@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 
 from models.LSTM import LSTM
 from models.RNN import RNN
-# from models.GRU import GRU
+from models.GRU import GRU
 
 from preprocessing.extraction import FrenchTextExtractor
 from preprocessing.extraction import EnglishIMDB
@@ -20,6 +20,7 @@ from preprocessing.tokenization import DataCreator
 from os.path import dirname, join, abspath
 
 import pickle
+import numpy as np
 
 root_dir = dirname(abspath(__file__))
 data_dir = join(root_dir,"datasets")
@@ -63,16 +64,25 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    # Extract the sentences
-    if args.dataset == "french-tragedies":
-        directory = join(data_dir, "livres-en-francais")
-        extractor = FrenchTextExtractor()
-    elif args.dataset == "english-reviews":
-        directory = join(data_dir, "critiques-imdb")
-        extractor = EnglishIMDB()
+    # # Extract the sentences
+    # if args.dataset == "french-tragedies":
+    #     directory = join(data_dir, "livres-en-francais")
+    #     extractor = FrenchTextExtractor()
+    # elif args.dataset == "english-reviews":
+    #     directory = join(data_dir, "critiques-imdb")
+    #     extractor = EnglishIMDB()
     
-    extractor.index_all_files(directory)
-    sentences = extractor.extract_sentences_indexed_files()
+    # extractor.index_all_files(directory)
+    # sentences = extractor.extract_sentences_indexed_files()
+
+    # with open("saved_extracted_sentences", 'wb') as f:
+    #     pickle.dump(sentences, f)
+
+    with open("saved_extracted_sentences", 'rb') as f:
+        sentences = pickle.load(f)
+
+    # Juste pour tester
+    sentences = sentences[:100]
 
     print("Données extraites !")
 
@@ -83,6 +93,7 @@ if __name__ == "__main__":
         vectorizer = Word2VecVectorizer("word2vec.save")
 
     vectorizer.create_vectorization(sentences)
+    vectorizer.save_vectorization()
 
     print("Vectorisation calculée !")
 
@@ -95,16 +106,10 @@ if __name__ == "__main__":
 
     print("Données tokenizées !")
 
-    with open("data_save", 'wb') as f:
-        pickle.dump((data, labels), f)
-
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
 
     train_set = train_data, train_labels
     test_set = test_data, test_labels
-
-    print(train_set)
-    print(test_set)
 
     if args.optimizer == 'SGD':
         optimizer_factory = optimizer_setup(torch.optim.SGD, lr=learning_rate, momentum=0.9)
@@ -118,7 +123,7 @@ if __name__ == "__main__":
     elif args.model == 'GRU':
         model = GRU()                # Rectifier  Arguments
 
-    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set)
+    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set, loss_fn=nn.CrossEntropyLoss(), optimizer_factory=optimizer_factory, batch_size=batch_size)
 
     if args.predict:        
         model_trainer.evaluate_on_test_set()
