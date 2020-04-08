@@ -50,11 +50,8 @@ class Vectorizer(ABC):
         
         vectorized_sentences = []
         for sentence in sentences:
-            vectorized_sentence = []
-            for word in sentence:
-                vectorized_sentence.append(self.transform_value(word))
-
-            vectorized_sentences.append(vectorized_sentences)
+            result = map(self.transform_value, sentence)
+            vectorized_sentences.append(list(result))
 
         return vectorized_sentences
 

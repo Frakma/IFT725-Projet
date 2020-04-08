@@ -61,8 +61,6 @@ class ModelTrainer(object):
                 train_losses = []
                 train_accuracies = []
 
-                print(len(train_loader))
-
                 for i, data in enumerate(train_loader, 0):
                     # get the inputs; data_train is a list of [inputs, labels]
                     inputs, labels = data[0].to(self.device), data[1].to(self.device)
@@ -72,16 +70,17 @@ class ModelTrainer(object):
 
                     # forward + backward + optimize
                     outputs = self.model(inputs)
+
                     loss = self.loss_fn(outputs, labels)
-                    loss.backward()
+                    loss.backward(retain_graph=True)
 
                     self.optimizer.step()
 
                     # Save losses for plotting purposes
                     train_losses.append(loss.item())
-                    train_accuracies.append(self.accuracy(outputs, labels))
+                    #train_accuracies.append(self.accuracy(outputs, labels))
 
-                    train_loss += loss.items()
+                    #train_loss += loss.items()
                     t.set_postfix(loss='{:05.3f}'.format(loss / (i + 1)))
                     t.update()
             
@@ -116,7 +115,7 @@ class ModelTrainer(object):
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
                 outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+                loss = self.loss_fn(outputs, labels)
                 validation_losses.append(loss.item())
 
                 validation_accuracies.append(self.accuracy(outputs, labels))

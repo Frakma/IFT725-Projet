@@ -121,7 +121,7 @@ class FrenchTextExtractor(TextExtractor):
 
             sentences = self.extract_sentences_from_text(file_data)
 
-            all_sentences.extend(sentences)
+            all_sentences.append(sentences)
 
         return all_sentences
 

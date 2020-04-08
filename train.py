@@ -20,6 +20,7 @@ from preprocessing.tokenization import DataCreator
 from os.path import dirname, join, abspath
 
 import pickle
+import h5py
 import numpy as np
 
 root_dir = dirname(abspath(__file__))
@@ -39,7 +40,7 @@ def argument_parser():
 
     parser.add_argument('--word_encoding', type=str, default="word2vec", choices=["word2vec","onehot"])
 
-    parser.add_argument('--sequence_size', type=int, default=20, help='The size of the sequence')
+    parser.add_argument('--sequence_size', type=int, default=5, help='The size of the sequence')
 
     parser.add_argument('--batch_size', type=int, default=20,                        
                             help='The size of the training batch')
@@ -64,33 +65,27 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    # # Extract the sentences
-    # if args.dataset == "french-tragedies":
-    #     directory = join(data_dir, "livres-en-francais")
-    #     extractor = FrenchTextExtractor()
-    # elif args.dataset == "english-reviews":
-    #     directory = join(data_dir, "critiques-imdb")
-    #     extractor = EnglishIMDB()
+    # Extract the sentences
+    if args.dataset == "french-tragedies":
+        directory = join(data_dir, "livres-en-francais")
+        extractor = FrenchTextExtractor()
+    elif args.dataset == "english-reviews":
+        directory = join(data_dir, "critiques-imdb")
+        extractor = EnglishIMDB()
     
-    # extractor.index_all_files(directory)
-    # sentences = extractor.extract_sentences_indexed_files()
+    extractor.index_all_files(directory)
+    sentences = extractor.extract_sentences_indexed_files()
 
-    # with open("saved_extracted_sentences", 'wb') as f:
-    #     pickle.dump(sentences, f)
-
-    with open("saved_extracted_sentences", 'rb') as f:
-        sentences = pickle.load(f)
-
-    # Juste pour tester
+    # TODO ENLEVER Pour limiter la création de données et tester
     sentences = sentences[:100]
 
     print("Données extraites !")
 
     # Vectorize the sentences
     if args.word_encoding == "word2vec":
-        vectorizer = Word2VecVectorizer("word2vec.save")
+        vectorizer = Word2VecVectorizer("saves/word2vec.save")
     elif args.word_encoding == "onehot":
-        vectorizer = Word2VecVectorizer("word2vec.save")
+        vectorizer = Word2VecVectorizer("saves/word2vec.save")
 
     vectorizer.create_vectorization(sentences)
     vectorizer.save_vectorization()
@@ -102,6 +97,9 @@ if __name__ == "__main__":
     print("Données transformées !")
 
     tokenizer = DataCreator(sentences, args.sequence_size)
+
+    del sentences
+
     data, labels = tokenizer.tokenize_sentences()
 
     print("Données tokenizées !")
@@ -117,13 +115,13 @@ if __name__ == "__main__":
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
     if args.model == 'LSTM':
-        model = LSTM(input_size=1, hidden_layer_size=100, output_size=1) # Rectifier  input_size/output_size
+        model = LSTM(input_dim=len(data[0]), hidden_layer_size=100, output_size=len(labels[0]))
     elif args.model == 'RNN':
-        model = RNN(input_size=1, neurons=30)  # Rectifier  input_size
+        model = RNN(input_dim=len(data[0]), neurons=30)
     elif args.model == 'GRU':
-        model = GRU()                # Rectifier  Arguments
+        model = GRU() 
 
-    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set, loss_fn=nn.CrossEntropyLoss(), optimizer_factory=optimizer_factory, batch_size=batch_size)
+    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set, loss_fn=nn.MSELoss(), optimizer_factory=optimizer_factory, batch_size=batch_size)
 
     if args.predict:        
         model_trainer.evaluate_on_test_set()

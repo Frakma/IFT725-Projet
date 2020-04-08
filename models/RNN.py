@@ -3,9 +3,9 @@ import torch.nn as nn
 
 
 class RNN(nn.Module):
-    def __init__(self, input_size=1, neurons=1):
+    def __init__(self, input_dim=1, neurons=1):
         super().__init__()        
-        self.w1 = torch.randn(input_size, neurons) 
+        self.w1 = torch.randn(input_dim, neurons) 
         self.w2 = torch.randn(neurons, neurons)         
         self.b = torch.zeros(1, neurons)
     
