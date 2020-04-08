@@ -123,8 +123,10 @@ class ModelTrainer(object):
         validation_losses = []
         validation_accuracies = []
 
+        validation_loader = DataLoader(self.data_validation, self.batch_size, shuffle=True)
+
         with torch.no_grad():
-            for j, data in enumerate(self.data_validation, 0):
+            for j, data in enumerate(validation_loader, 0):
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
                 outputs = self.model(inputs)
@@ -137,7 +139,7 @@ class ModelTrainer(object):
         self.metric_values['val_loss'].append(np.mean(validation_losses))
         self.metric_values['val_acc'].append(np.mean(validation_accuracies))
 
-        print('Validation loss %.3f' % (validation_loss / len(self.data_validation)))
+        print('Validation loss %.3f' % (validation_loss / len(validation_loader)))
 
         self.model.train()
 
@@ -148,11 +150,17 @@ class ModelTrainer(object):
             Test Accuracy 
         """
         accuracies = 0
+
+        test_loader = DataLoader(self.data_test, self.batch_size, shuffle=True)
+
         with torch.no_grad():
-            for i, data in self.data_test:
+            for j, data in enumerate(test_loader, 0):
                 test_inputs, test_labels = data[0].to(self.device), data[1].to(self.device)
+
                 test_outputs = self.model(test_inputs)
+
                 accuracies += self.accuracy(test_outputs, test_labels)
+
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
 
     def plot_metrics(self):
