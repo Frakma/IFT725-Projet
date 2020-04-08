@@ -45,7 +45,7 @@ def argument_parser():
                             help='The size of the training batch')
     parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"],
                         help="The optimizer to use for training the model")
-    parser.add_argument('--num-epochs', type=int, default=10,
+    parser.add_argument('--num-epochs', type=int, default=1,
                         help='The number of epochs')
     parser.add_argument('--validation', type=float, default=0.1,
                         help='Percentage of training data to use for validation')
@@ -64,26 +64,26 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    # # Extract the sentences
-    # if args.dataset == "french-tragedies":
-    #     directory = join(data_dir, "livres-en-francais")
-    #     extractor = FrenchTextExtractor()
-    # elif args.dataset == "english-reviews":
-    #     directory = join(data_dir, "critiques-imdb")
-    #     extractor = EnglishIMDB()
+    # Extract the sentences
+    if args.dataset == "french-tragedies":
+        directory = join(data_dir, "livres-en-francais")
+        extractor = FrenchTextExtractor()
+    elif args.dataset == "english-reviews":
+        directory = join(data_dir, "critiques-imdb")
+        extractor = EnglishIMDB()
     
-    # extractor.index_all_files(directory)
-    # sentences = extractor.extract_sentences_indexed_files()
+    extractor.index_all_files(directory)
+    sentences = extractor.extract_sentences_indexed_files()
 
-    # ## NOTE : à décommenter lorsqu'on sauvegarde des données existantes
-    # with open("saves/french_sentences.save", "wb") as f:
-    #     pickle.dump(sentences, f)
-    # ##
-
-    ## NOTE : à décommenter lorsqu'on charge des données existantes
-    with open("saves/french_sentences.save", "rb") as f:
-        sentences = pickle.load(f)
+    ## NOTE : à décommenter lorsqu'on sauvegarde des données existantes
+    with open("saves/french_sentences.save", "wb") as f:
+        pickle.dump(sentences, f)
     ##
+
+    # ## NOTE : à décommenter lorsqu'on charge des données existantes
+    # with open("saves/french_sentences.save", "rb") as f:
+    #     sentences = pickle.load(f)
+    # ##
 
     # TODO ENLEVER Pour limiter la création de données et tester
     sentences = sentences[:100]

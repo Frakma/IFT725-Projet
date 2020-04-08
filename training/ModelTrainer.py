@@ -33,7 +33,7 @@ class ModelTrainer(object):
         self.validation=validation
 
         if validation is not None:
-            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1])
+            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
 
             self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
 

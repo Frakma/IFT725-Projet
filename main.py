@@ -17,23 +17,23 @@ data_dir = join(root_dir,"datasets")
 
 save_french_sentences_path = "saves/french_sentences.save"
 
-# ## NOTE : à décommenter lorsqu'on ne charge pas des données existantes
-# frenchbooks_dir = join(data_dir, "livres-en-francais")
+## NOTE : à décommenter lorsqu'on ne charge pas des données existantes
+frenchbooks_dir = join(data_dir, "livres-en-francais")
 
-# text_extractor = FrenchTextExtractor()
-# text_extractor.index_all_files(frenchbooks_dir)
+text_extractor = FrenchTextExtractor()
+text_extractor.index_all_files(frenchbooks_dir)
 
-# extracted_sentences = text_extractor.extract_sentences_indexed_files()
-# print("Nous avons pu extraire", len(extracted_sentences), "phrases")
+extracted_sentences = text_extractor.extract_sentences_indexed_files()
+print("Nous avons pu extraire", len(extracted_sentences), "phrases")
 
-# with open(save_french_sentences_path, 'wb') as f:
-#     pickle.dump(extracted_sentences, f)
-# ##
-
-## NOTE : à décommenter lorsqu'on charge des données existantes
-with open(save_french_sentences_path, "rb") as f:
-    extracted_sentences = pickle.load(f)
+with open(save_french_sentences_path, 'wb') as f:
+    pickle.dump(extracted_sentences, f)
 ##
+
+# ## NOTE : à décommenter lorsqu'on charge des données existantes
+# with open(save_french_sentences_path, "rb") as f:
+#     extracted_sentences = pickle.load(f)
+# ##
 
 vectorizer = Word2VecVectorizer("saves/french_word2vec.save")
 
