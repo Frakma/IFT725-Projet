@@ -121,7 +121,7 @@ class FrenchTextExtractor(TextExtractor):
 
             sentences = self.extract_sentences_from_text(file_data)
 
-            all_sentences.append(sentences)
+            all_sentences.extend(sentences)
 
         return all_sentences
 
@@ -159,12 +159,6 @@ class EnglishIMDB(TextExtractor):
         splitter = re.compile("[, -;.()]")
 
         sentences = [splitter.split(sentence) for sentence in sentences]
-
-        removed_empty = []
-        for sentence in sentences:
-            removed_empty.append([x for x in sentence if len(x) > 0])
-
-        sentences = [x for x in removed_empty if len(x) > 0]
 
         return sentences
 

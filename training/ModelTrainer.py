@@ -19,7 +19,8 @@ class ModelTrainer(object):
                  optimizer_factory: Callable[[torch.nn.Module], torch.optim.Optimizer],
                  batch_size=1,
                  validation=None,
-                 use_cuda=False):        
+                 use_cuda=False,
+                 word2vec=None):        
     
         device_name = 'cuda:0' if use_cuda else 'cpu'
         if use_cuda and not torch.cuda.is_available():
@@ -31,7 +32,18 @@ class ModelTrainer(object):
         self.device = torch.device(device_name)
         self.validation=validation
 
+        if validation is not None:
+            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1])
+
+            self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
+
+            data_train = (data_train_X, data_train_y)
+
+        if word2vec is not None:
+            self.word2vec = word2vec
+
         self.data_train = data.TensorDataset(torch.Tensor(data_train[0]),torch.Tensor(data_train[1]))
+            
         self.data_test = data.TensorDataset(torch.Tensor(data_test[0]),torch.Tensor(data_test[1]))
 
         self.model = model        
@@ -94,24 +106,25 @@ class ModelTrainer(object):
         print('Finished Training')
 
     def accuracy(self, outputs, labels):
-        acc=[]
-        for predicted, label in zip(outputs, labels):
-            m = tf.keras.metrics.Accuracy() 
-            _ = m.update_state(predicted, label) 
-            acc.append(m.result().numpy() )
-        
-        return np.mean(acc)
+
+        if self.word2vec is not None:
+            acc=[]
+            for predicted, label in zip(outputs, labels):
+                acc.append(self.word2vec.similar_by_vector(predicted.eval(), topn=1)[0][0] == self.word2vec.similar_by_vector(label.eval(), topn=1)[0][0])
+            return acc/len(acc)
+        else:
+            correct = (outputs == labels).sum().item()
+            return correct / labels.size(0)
 
     def evaluate_on_validation_set(self):
         self.model.eval()
 
-        val_loader = DataLoader(self.data_validation, self.batch_size, shuffle=True)
         validation_loss = 0.0
         validation_losses = []
         validation_accuracies = []
 
         with torch.no_grad():
-            for j, data in enumerate(val_loader, 0):
+            for j, data in enumerate(self.data_validation, 0):
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
                 outputs = self.model(inputs)
@@ -124,11 +137,9 @@ class ModelTrainer(object):
         self.metric_values['val_loss'].append(np.mean(validation_losses))
         self.metric_values['val_acc'].append(np.mean(validation_accuracies))
 
-        print('Validation loss %.3f' % (validation_loss / len(val_loader)))
+        print('Validation loss %.3f' % (validation_loss / len(self.data_validation)))
 
         self.model.train()
-
-
 
     def evaluate_on_test_set(self):
         """
@@ -136,10 +147,9 @@ class ModelTrainer(object):
         return:
             Test Accuracy 
         """
-        test_loader = DataLoader(self.data_test, self.batch_size, shuffle=True)
         accuracies = 0
         with torch.no_grad():
-            for data in test_loader:
+            for i, data in self.data_test:
                 test_inputs, test_labels = data[0].to(self.device), data[1].to(self.device)
                 test_outputs = self.model(test_inputs)
                 accuracies += self.accuracy(test_outputs, test_labels)

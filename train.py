@@ -20,7 +20,6 @@ from preprocessing.tokenization import DataCreator
 from os.path import dirname, join, abspath
 
 import pickle
-import h5py
 import numpy as np
 
 root_dir = dirname(abspath(__file__))
@@ -76,8 +75,18 @@ if __name__ == "__main__":
     extractor.index_all_files(directory)
     sentences = extractor.extract_sentences_indexed_files()
 
+    ## NOTE : à décommenter lorsqu'on sauvegarde des données existantes
+    with open("saves/french_sentences.save", "wb") as f:
+        pickle.dump(sentences, f)
+    ##
+
+    # ## NOTE : à décommenter lorsqu'on charge des données existantes
+    # with open("saves/french_sentences.save", "rb") as f:
+    #     sentences = pickle.load(f)
+    # ##
+
     # TODO ENLEVER Pour limiter la création de données et tester
-    sentences = sentences[:100]
+    sentences = sentences[:10000]
 
     print("Données extraites !")
 
@@ -121,7 +130,7 @@ if __name__ == "__main__":
     elif args.model == 'GRU':
         model = GRU() 
 
-    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set, loss_fn=nn.MSELoss(), optimizer_factory=optimizer_factory, batch_size=batch_size)
+    model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set, loss_fn=nn.MSELoss(), optimizer_factory=optimizer_factory, batch_size=batch_size, word2vec=vectorizer.model)
 
     if args.predict:        
         model_trainer.evaluate_on_test_set()

@@ -60,7 +60,7 @@ class Word2VecVectorizer(Vectorizer):
         self.save_path = save_path
 
     def create_vectorization(self, sentences):
-        self.model = Word2Vec(sentences, min_count=1, workers=4)
+        self.model = Word2Vec(sentences, min_count=1)
     
     def save_vectorization(self):
         self.model.save(self.save_path)
