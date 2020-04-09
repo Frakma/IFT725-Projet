@@ -84,7 +84,7 @@ if __name__ == "__main__":
     sentences = extractor.extract_sentences_indexed_files()
 
     # random.seed(0)
-    # sentences = random.sample(sentences, 30)
+    # sentences = random.sample(sentences, 30000)
 
     print("Sentences are extracted !")
 
@@ -102,9 +102,11 @@ if __name__ == "__main__":
 
     print("Sentences vectorized !")
 
-    tokenizer = DataCreator(sentences, args.sequence_size)
+    tokenizer = DataCreator(sentences, args.sequence_size, 100000)
 
     data, labels = tokenizer.tokenize_sentences()
+
+    del sentences
 
     print("Sequence tokens created !")
 
