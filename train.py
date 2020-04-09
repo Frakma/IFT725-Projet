@@ -5,7 +5,6 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
-#import torchvision.transforms as transforms
 from training.ModelTrainer import ModelTrainer, optimizer_setup
 
 from sklearn.model_selection import train_test_split
@@ -26,6 +25,9 @@ import pickle
 import numpy as np
 
 import random
+
+import pathlib
+print(pathlib.Path(__file__).parent.absolute())
 
 def argument_parser():
     """
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     # ##
 
     random.seed(0)
-    #sentences = random.sample(sentences, 1000)
+    sentences = random.sample(sentences, 30000)
 
     print("Données extraites !")
 
