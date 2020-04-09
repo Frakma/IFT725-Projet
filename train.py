@@ -39,13 +39,13 @@ def argument_parser():
 
     parser.add_argument('--word_encoding', type=str, default="word2vec", choices=["word2vec","onehot"])
 
-    parser.add_argument('--sequence_size', type=int, default=5, help='The size of the sequence')
+    parser.add_argument('--sequence_size', type=int, default=4, help='The size of the sequences')
 
     parser.add_argument('--batch_size', type=int, default=20,                        
                             help='The size of the training batch')
     parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"],
                         help="The optimizer to use for training the model")
-    parser.add_argument('--num-epochs', type=int, default=1,
+    parser.add_argument('--num-epochs', type=int, default=5,
                         help='The number of epochs')
     parser.add_argument('--validation', type=float, default=0.1,
                         help='Percentage of training data to use for validation')
@@ -64,29 +64,29 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    ## NOTE : à décommenter lorsqu'on créer des données
-    # Extract the sentences
-    if args.dataset == "french-tragedies":
-        directory = join(data_dir, "livres-en-francais")
-        extractor = FrenchTextExtractor()
-    elif args.dataset == "english-reviews":
-        directory = join(data_dir, "critiques-imdb")
-        extractor = EnglishIMDB()
+    # ## NOTE : à décommenter lorsqu'on créer des données
+    # # Extract the sentences
+    # if args.dataset == "french-tragedies":
+    #     directory = join(data_dir, "livres-en-francais")
+    #     extractor = FrenchTextExtractor()
+    # elif args.dataset == "english-reviews":
+    #     directory = join(data_dir, "critiques-imdb")
+    #     extractor = EnglishIMDB()
     
-    extractor.index_all_files(directory)
-    sentences = extractor.extract_sentences_indexed_files()
+    # extractor.index_all_files(directory)
+    # sentences = extractor.extract_sentences_indexed_files()
 
-    with open("saves/french_sentences.save", "wb") as f:
-        pickle.dump(sentences, f)
-    ###
+    # with open("saves/french_sentences.save", "wb") as f:
+    #     pickle.dump(sentences, f)
+    # ###
 
-    # ## NOTE : à décommenter lorsqu'on charge des données existantes
-    # with open("saves/french_sentences.save", "rb") as f:
-    #     sentences = pickle.load(f)
-    # ##
+    ## NOTE : à décommenter lorsqu'on charge des données existantes
+    with open("saves/french_sentences.save", "rb") as f:
+        sentences = pickle.load(f)
+    ##
 
     # TODO ENLEVER APRES TESTS (Pour limiter la création de données et tester)
-    sentences = sentences[:100]
+    sentences = sentences[:10000]
 
     print("Données extraites !")
 
@@ -107,8 +107,6 @@ if __name__ == "__main__":
 
     tokenizer = DataCreator(sentences, args.sequence_size)
 
-    del sentences
-
     data, labels = tokenizer.tokenize_sentences()
 
     print("Données tokenizées !")
@@ -124,7 +122,7 @@ if __name__ == "__main__":
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
     if args.model == 'LSTM':
-        model = LSTM(input_dim=len(data[0]), hidden_layer_size=100, output_size=len(labels[0]))
+        model = LSTM(input_dim=len(data[0]), hidden_dim=100, output_dim=len(labels[0]))
     elif args.model == 'RNN':
         model = RNN(input_dim=len(data[0]), neurons=30)
     elif args.model == 'GRU':
@@ -140,4 +138,6 @@ if __name__ == "__main__":
         model_trainer.train(num_epochs)
         model_trainer.evaluate_on_test_set()
 
-        #model_trainer.plot_metrics()
+        model_trainer.plot_metrics()
+
+        torch.save(model_trainer.model.state_dict(), "saves/model")

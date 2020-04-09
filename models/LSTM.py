@@ -1,20 +1,14 @@
 import torch
 import torch.nn as nn
 
-# https://stackabuse.com/time-series-prediction-using-lstm-with-pytorch-in-python/ 
 class LSTM(nn.Module):
-    def __init__(self, input_dim=500, hidden_layer_size=100, output_size=100):
+    def __init__(self, input_dim=500, hidden_dim=100, output_dim=100):
         super().__init__()
-        self.hidden_layer_size = hidden_layer_size
-
-        self.lstm = nn.LSTM(input_dim, hidden_layer_size)
-
-        self.linear = nn.Linear(hidden_layer_size, output_size)
-
-        self.hidden_cell = (torch.zeros(1,1,self.hidden_layer_size),
-                            torch.zeros(1,1,self.hidden_layer_size))
+        self.hidden_layer_size = hidden_dim
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=2)
+        self.linear = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, input_seq):
-        lstm_out, self.hidden_cell = self.lstm(input_seq.view(len(input_seq), 1, -1), self.hidden_cell)
+        lstm_out, _ = self.lstm(input_seq.view(len(input_seq), 1, -1))
         predictions = self.linear(lstm_out.view(len(input_seq), -1))
         return predictions
