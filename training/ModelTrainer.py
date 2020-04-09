@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import  DataLoader
 from typing import Callable, Type
 from tqdm import tqdm
-import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils import data
@@ -23,9 +22,9 @@ class ModelTrainer(object):
     
         device_name = 'cuda:0' if use_cuda else 'cpu'
         if use_cuda and not torch.cuda.is_available():
-            warnings.warn("CUDA is not available. Suppress this warning by passing "
+            print("CUDA is not available. Suppress this warning by passing "
                           "use_cuda=False to {}()."
-                          .format(self.__class__.__name__), RuntimeWarning)
+                          .format(self.__class__.__name__))
             device_name = 'cpu'
 
         self.device = torch.device(device_name)
