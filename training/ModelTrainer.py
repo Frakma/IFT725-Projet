@@ -9,7 +9,7 @@ from typing import Callable, Type
 from tqdm import tqdm
 import warnings
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from torch.utils import data
 
 #we followed the same steps used in tp3
@@ -30,10 +30,9 @@ class ModelTrainer(object):
             device_name = 'cpu'
 
         self.device = torch.device(device_name)
-        self.validation=validation
 
         if validation is not None:
-            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
+            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=validation)
 
             self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
 
@@ -49,9 +48,10 @@ class ModelTrainer(object):
         self.model = model        
         self.batch_size = batch_size
         self.loss_fn = loss_fn
-        self.optimizer = optimizer_factory(self.model)
 
+        self.optimizer = optimizer_factory(self.model)
         self.model = self.model.to(self.device)
+
         self.use_cuda = use_cuda
         self.metric_values = {}
 
@@ -92,16 +92,14 @@ class ModelTrainer(object):
                     train_losses.append(loss.item())
                     train_accuracies.append(self.accuracy(outputs, labels))
 
-                    #train_loss += loss.items()
-                    t.set_postfix(loss='{:05.3f}'.format(loss / (i + 1)))
+                    train_loss += loss.item()
+                    t.set_postfix(loss='{:05.3f}'.format(train_loss / (i + 1)))
                     t.update()
             
             # evaluate the model on validation data after each epoch
             self.metric_values['train_loss'].append(np.mean(train_losses))
             self.metric_values['train_acc'].append(np.mean(train_accuracies))
-
-            if self.validation is not None:
-                self.evaluate_on_validation_set()
+            self.evaluate_on_validation_set()
 
         print('Finished Training')
 
@@ -110,7 +108,7 @@ class ModelTrainer(object):
         if self.word2vec is not None:
             acc=[]
             for predicted, label in zip(outputs, labels):
-                acc.append(self.word2vec.similar_by_vector(predicted.detach().numpy(), topn=1)[0][0] == self.word2vec.similar_by_vector(label.detach().numpy(), topn=1)[0][0])
+                acc.append(1/(1+torch.dist(predicted, label).item()))
             return sum(acc)/len(acc)
         else:
             correct = (outputs == labels).sum().item()
