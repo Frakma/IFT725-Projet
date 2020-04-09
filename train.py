@@ -22,6 +22,8 @@ from os.path import dirname, join, abspath
 import pickle
 import numpy as np
 
+import random
+
 root_dir = dirname(abspath(__file__))
 data_dir = join(root_dir,"datasets")
 
@@ -39,13 +41,13 @@ def argument_parser():
 
     parser.add_argument('--word_encoding', type=str, default="word2vec", choices=["word2vec","onehot"])
 
-    parser.add_argument('--sequence_size', type=int, default=4, help='The size of the sequences')
+    parser.add_argument('--sequence_size', type=int, default=10, help='The size of the sequences')
 
     parser.add_argument('--batch_size', type=int, default=20,                        
                             help='The size of the training batch')
     parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"],
                         help="The optimizer to use for training the model")
-    parser.add_argument('--num-epochs', type=int, default=5,
+    parser.add_argument('--num-epochs', type=int, default=10,
                         help='The number of epochs')
     parser.add_argument('--validation', type=float, default=0.1,
                         help='Percentage of training data to use for validation')
@@ -85,8 +87,8 @@ if __name__ == "__main__":
         sentences = pickle.load(f)
     ##
 
-    # TODO ENLEVER APRES TESTS (Pour limiter la création de données et tester)
-    sentences = sentences[:10000]
+    random.seed(0)
+    sentences = random.sample(sentences, 10000)
 
     print("Données extraites !")
 
@@ -122,11 +124,11 @@ if __name__ == "__main__":
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
     if args.model == 'LSTM':
-        model = LSTM(input_dim=len(data[0]), hidden_dim=100, output_dim=len(labels[0]))
+        model = LSTM(input_dim=len(data[0]), hidden_dim=300, output_dim=len(labels[0]))
     elif args.model == 'RNN':
         model = RNN(input_dim=len(data[0]), neurons=30)
     elif args.model == 'GRU':
-        model = GRU(input_dim=len(data[0]), hidden_dim=100, output_dim=len(labels[0]))
+        model = GRU(input_dim=len(data[0]), hidden_dim=300, output_dim=len(labels[0]))
 
     model_trainer = ModelTrainer(model=model,
                                 data_train=train_set,

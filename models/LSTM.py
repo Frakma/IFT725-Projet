@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class LSTM(nn.Module):
-    def __init__(self, input_dim=500, hidden_dim=100, output_dim=100):
+    def __init__(self, input_dim=500, hidden_dim=300, output_dim=100):
         super().__init__()
         self.hidden_layer_size = hidden_dim
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=2)

@@ -104,15 +104,10 @@ class ModelTrainer(object):
         print('Finished Training')
 
     def accuracy(self, outputs, labels):
-
-        if self.word2vec is not None:
-            acc=[]
-            for predicted, label in zip(outputs, labels):
-                acc.append(1/(1+torch.dist(predicted, label).item()))
-            return sum(acc)/len(acc)
-        else:
-            correct = (outputs == labels).sum().item()
-            return correct / labels.size(0)
+        acc=[]
+        for predicted, label in zip(outputs, labels):
+            acc.append(1/(1+torch.dist(predicted, label).item()))
+        return sum(acc)/len(acc)
 
     def evaluate_on_validation_set(self):
         self.model.eval()
