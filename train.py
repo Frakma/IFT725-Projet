@@ -83,8 +83,8 @@ if __name__ == "__main__":
     extractor.index_all_files(directory)
     sentences = extractor.extract_sentences_indexed_files()
 
-    # random.seed(0)
-    # sentences = random.sample(sentences, 30000)
+    random.seed(0)
+    sentences = random.sample(sentences, 30000)
 
     print("Sentences are extracted !")
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     print("Sentences vectorized !")
 
-    tokenizer = DataCreator(sentences, args.sequence_size, 100000)
+    tokenizer = DataCreator(sentences, args.sequence_size, 500000)
 
     data, labels = tokenizer.tokenize_sentences()
 
