@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import tensorflow as tf
 import torch.optim as optim
 from typing import Callable, Type
 from sklearn.model_selection import train_test_split
@@ -30,9 +29,10 @@ class ModelTrainer(object):
             device_name = 'cpu'
 
         self.device = torch.device(device_name)
+        self.validation=validation
 
         if validation is not None:
-            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=validation)
+            data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
 
             self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
 
@@ -48,10 +48,9 @@ class ModelTrainer(object):
         self.model = model        
         self.batch_size = batch_size
         self.loss_fn = loss_fn
-
         self.optimizer = optimizer_factory(self.model)
-        self.model = self.model.to(self.device)
 
+        self.model = self.model.to(self.device)
         self.use_cuda = use_cuda
         self.metric_values = {}
 
@@ -92,14 +91,16 @@ class ModelTrainer(object):
                     train_losses.append(loss.item())
                     train_accuracies.append(self.accuracy(outputs, labels))
 
-                    train_loss += loss.item()
-                    t.set_postfix(loss='{:05.3f}'.format(train_loss / (i + 1)))
+                    #train_loss += loss.items()
+                    t.set_postfix(loss='{:05.3f}'.format(loss / (i + 1)))
                     t.update()
             
             # evaluate the model on validation data after each epoch
             self.metric_values['train_loss'].append(np.mean(train_losses))
             self.metric_values['train_acc'].append(np.mean(train_accuracies))
-            self.evaluate_on_validation_set()
+
+            if self.validation is not None:
+                self.evaluate_on_validation_set()
 
         print('Finished Training')
 
