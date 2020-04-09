@@ -2,7 +2,6 @@ from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
-import joblib
 
 from abc import ABC, abstractmethod 
 
