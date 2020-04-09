@@ -32,7 +32,7 @@ def argument_parser():
     parser = argparse.ArgumentParser(usage='\n python3 train.py [model] [dataset] [encoder] [hyper_parameters]',
                                      description="This program allows to train different models on"
                                                  " different datasets using different encoders. ")
-    parser.add_argument('--model', type=str, default="LSTM",
+    parser.add_argument('--model', type=str, default="GRU",
                         choices=["LSTM", "RNN", "GRU"])
 
     parser.add_argument('--dataset', type=str, default="french-tragedies", choices=["french-tragedies","english-reviews"])
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     if args.word_encoding == "word2vec":
         vectorizer = Word2VecVectorizer("saves/word2vec.save")
     elif args.word_encoding == "onehot":
-        vectorizer = Word2VecVectorizer("saves/word2vec.save")
+        vectorizer = OneHotVectorizer("saves/onehot.save")
 
     vectorizer.create_vectorization(sentences)
     vectorizer.save_vectorization()
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     elif args.model == 'RNN':
         model = RNN(input_dim=len(data[0]), neurons=30)
     elif args.model == 'GRU':
-        model = GRU() 
+        model = GRU(input_dim=len(data[0]), hidden_layer_size=100, output_size=len(labels[0])) 
 
     model_trainer = ModelTrainer(model=model, data_train=train_set, data_test=test_set, loss_fn=nn.MSELoss(), optimizer_factory=optimizer_factory, batch_size=batch_size, word2vec=vectorizer.model)
 
