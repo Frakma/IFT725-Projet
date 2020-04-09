@@ -26,9 +26,6 @@ import numpy as np
 
 import random
 
-import pathlib
-print(pathlib.Path(__file__).parent.absolute())
-
 def argument_parser():
     """
         A parser to allow user to easily experiment different models along with datasets and differents parameters
@@ -108,8 +105,7 @@ if __name__ == "__main__":
         vectorizer = OneHotVectorizer("saves/onehot.save")
 
     vectorizer.create_vectorization(sentences)
-    vectorizer.save_vectorization()
-
+    
     print("Vectorisation calculée !")
 
     sentences = vectorizer.transform_sentences(sentences)
