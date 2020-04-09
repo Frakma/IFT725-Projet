@@ -12,8 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils import data
 
-#we followed the same steps used in tp3
 class ModelTrainer(object):
+    """We started from the ModelTrainer class of the TP3
+    """
     def __init__(self, model, data_train, data_test,
                  loss_fn: torch.nn.Module,
                  optimizer_factory: Callable[[torch.nn.Module], torch.optim.Optimizer],
@@ -158,7 +159,7 @@ class ModelTrainer(object):
 
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
 
-    def plot_metrics(self):
+    def plot_metrics(self, name):
         """
         Function that plots train and validation losses and accuracies after training phase
         """
@@ -183,9 +184,7 @@ class ModelTrainer(object):
         ax2.set_xlabel('Epochs')
         ax2.set_ylabel('accuracy')
         ax2.legend()
-        f.savefig('fig.png')
-        plt.show()
-
+        f.savefig(name)
 
 def optimizer_setup(optimizer_class: Type[torch.optim.Optimizer], **hyperparameters) -> \
         Callable[[torch.nn.Module], torch.optim.Optimizer]:

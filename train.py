@@ -42,13 +42,13 @@ def argument_parser():
 
     parser.add_argument('--word_encoding', type=str, default="word2vec", choices=["word2vec","onehot"])
 
-    parser.add_argument('--sequence_size', type=int, default=10, help='The size of the sequences')
+    parser.add_argument('--sequence_size', type=int, default=5, help='The size of the sequences')
 
     parser.add_argument('--batch_size', type=int, default=20,                        
                             help='The size of the training batch')
     parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"],
                         help="The optimizer to use for training the model")
-    parser.add_argument('--num-epochs', type=int, default=10,
+    parser.add_argument('--num_epochs', type=int, default=20,
                         help='The number of epochs')
     parser.add_argument('--validation', type=float, default=0.1,
                         help='Percentage of training data to use for validation')
@@ -79,24 +79,14 @@ if __name__ == "__main__":
         extractor = EnglishIMDB()
         saving_path = "saves/english-reviews"
     
-    # NOTE : à décommenter lorsqu'on créer des données
     #Extract the sentences
     extractor.index_all_files(directory)
     sentences = extractor.extract_sentences_indexed_files()
 
-    # with open(saving_path, "wb") as f:
-    #     pickle.dump(sentences, f)
-    # ###
+    # random.seed(0)
+    # sentences = random.sample(sentences, 30)
 
-    # ## NOTE : à décommenter lorsqu'on charge des données existantes
-    # with open(saving_path, "rb") as f:
-    #     sentences = pickle.load(f)
-    # ##
-
-    random.seed(0)
-    sentences = random.sample(sentences, 30000)
-
-    print("Données extraites !")
+    print("Sentences are extracted !")
 
     # Vectorize the sentences
     if args.word_encoding == "word2vec":
@@ -105,18 +95,18 @@ if __name__ == "__main__":
         vectorizer = OneHotVectorizer("saves/onehot.save")
 
     vectorizer.create_vectorization(sentences)
-    
-    print("Vectorisation calculée !")
+
+    print("Vectorization computed !")
 
     sentences = vectorizer.transform_sentences(sentences)
 
-    print("Données transformées !")
+    print("Sentences vectorized !")
 
     tokenizer = DataCreator(sentences, args.sequence_size)
 
     data, labels = tokenizer.tokenize_sentences()
 
-    print("Données tokenizées !")
+    print("Sequence tokens created !")
 
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
 
@@ -153,6 +143,9 @@ if __name__ == "__main__":
         model_trainer.train(num_epochs)
         model_trainer.evaluate_on_test_set()
 
-        model_trainer.plot_metrics()
+        model_trainer.plot_metrics("saves/fig-"+str(args.model)+"-"+str(args.dataset)+"-"+str(args.sequence_size)+"-"+str(args.batch_size)+".png")
 
-        torch.save(model_trainer.model.state_dict(), "saves/model")
+        with open("saves/metrics-"+str(args.model)+"-"+str(args.dataset)+"-"+str(args.sequence_size)+"-"+str(args.batch_size)+".metrics", 'wb') as f:
+            pickle.dump(model_trainer.metric_values, f, pickle.HIGHEST_PROTOCOL)
+
+        torch.save(model_trainer.model.state_dict(), "saves/model-"+str(args.model)+"-"+str(args.dataset)+"-"+str(args.sequence_size)+"-"+str(args.batch_size))

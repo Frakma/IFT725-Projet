@@ -115,7 +115,7 @@ class FrenchTextExtractor(TextExtractor):
         all_sentences = []
 
         for index, row in self.df_files.iterrows():
-            print("En train d'extraire les phrases du livre :",row["author"], "-", row["book"])
+            print("Extracting :",row["author"], "-", row["book"])
 
             file_data = self.load_and_clean_file(row["path"])
 
