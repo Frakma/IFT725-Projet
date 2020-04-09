@@ -8,7 +8,7 @@ from typing import Callable, Type
 from tqdm import tqdm
 import warnings
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from torch.utils import data
 
 #we followed the same steps used in tp3
