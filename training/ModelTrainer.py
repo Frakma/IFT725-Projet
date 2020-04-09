@@ -91,8 +91,8 @@ class ModelTrainer(object):
                     train_losses.append(loss.item())
                     train_accuracies.append(self.accuracy(outputs, labels))
 
-                    #train_loss += loss.items()
-                    t.set_postfix(loss='{:05.3f}'.format(loss / (i + 1)))
+                    train_loss += loss.item()
+                    t.set_postfix(loss='{:05.3f}'.format(train_loss / (i + 1)))
                     t.update()
             
             # evaluate the model on validation data after each epoch
