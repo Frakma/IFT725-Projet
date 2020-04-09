@@ -1,2 +1,5 @@
 datasets
 saves
+models/__pycache__
+preprocessing/__pycache__
+training/__pycache__

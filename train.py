@@ -15,6 +15,7 @@ from models.GRU import GRU
 from preprocessing.extraction import FrenchTextExtractor
 from preprocessing.extraction import EnglishIMDB
 from preprocessing.vectorization import Word2VecVectorizer
+from preprocessing.vectorization import OneHotVectorizer
 from preprocessing.tokenization import DataCreator
 
 from os.path import dirname, join, abspath
@@ -23,9 +24,6 @@ import pickle
 import numpy as np
 
 import random
-
-root_dir = dirname(abspath(__file__))
-data_dir = join(root_dir,"datasets")
 
 def argument_parser():
     """
@@ -36,6 +34,8 @@ def argument_parser():
                                                  " different datasets using different encoders. ")
     parser.add_argument('--model', type=str, default="GRU",
                         choices=["LSTM", "RNN", "GRU"])
+
+    parser.add_argument('--datasets_path', type=str, default="./datasets")
 
     parser.add_argument('--dataset', type=str, default="french-tragedies", choices=["french-tragedies","english-reviews"])
 
@@ -61,34 +61,39 @@ if __name__ == "__main__":
     
     args = argument_parser()
 
+    root_dir = dirname(abspath(__file__))
+    data_dir = join(args.datasets_path)
+
     batch_size = args.batch_size
     num_epochs = args.num_epochs
     val_set = args.validation
     learning_rate = args.lr
 
-    # ## NOTE : à décommenter lorsqu'on créer des données
-    # # Extract the sentences
-    # if args.dataset == "french-tragedies":
-    #     directory = join(data_dir, "livres-en-francais")
-    #     extractor = FrenchTextExtractor()
-    # elif args.dataset == "english-reviews":
-    #     directory = join(data_dir, "critiques-imdb")
-    #     extractor = EnglishIMDB()
+    if args.dataset == "french-tragedies":
+        directory = join(data_dir, "livres-en-francais")
+        extractor = FrenchTextExtractor()
+        saving_path = "saves/livres-en-francais"
+    elif args.dataset == "english-reviews":
+        directory = join(data_dir, "critiques-imdb")
+        extractor = EnglishIMDB()
+        saving_path = "saves/english-reviews"
     
-    # extractor.index_all_files(directory)
-    # sentences = extractor.extract_sentences_indexed_files()
+    # NOTE : à décommenter lorsqu'on créer des données
+    #Extract the sentences
+    extractor.index_all_files(directory)
+    sentences = extractor.extract_sentences_indexed_files()
 
-    # with open("saves/french_sentences.save", "wb") as f:
-    #     pickle.dump(sentences, f)
-    # ###
+    with open(saving_path, "wb") as f:
+        pickle.dump(sentences, f)
+    ###
 
-    ## NOTE : à décommenter lorsqu'on charge des données existantes
-    with open("saves/french_sentences.save", "rb") as f:
-        sentences = pickle.load(f)
-    ##
+    # ## NOTE : à décommenter lorsqu'on charge des données existantes
+    # with open(saving_path, "rb") as f:
+    #     sentences = pickle.load(f)
+    # ##
 
     random.seed(0)
-    sentences = random.sample(sentences, 10000)
+    #sentences = random.sample(sentences, 1000)
 
     print("Données extraites !")
 
