@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import tensorflow as tf
 import torch.optim as optim
 from typing import Callable, Type
 from sklearn.model_selection import train_test_split
