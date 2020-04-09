@@ -1,4 +1,3 @@
-pytorch
 matplotlib
 numpy
 pandas
@@ -7,3 +6,5 @@ tqdm
 gensim
 typing
 warnings
+pytorch-lightning
+torch_gpu
