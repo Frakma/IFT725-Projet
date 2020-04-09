@@ -83,7 +83,6 @@ class OneHotVectorizer(Vectorizer):
         onehot_encoder.fit(values)
 
         self.model = onehot_encoder
-        
     
     def save_vectorization(self):
         joblib.dump(self.model, self.save_path)

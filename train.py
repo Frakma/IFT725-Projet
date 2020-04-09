@@ -39,7 +39,7 @@ def argument_parser():
 
     parser.add_argument('--word_encoding', type=str, default="word2vec", choices=["word2vec","onehot"])
 
-    parser.add_argument('--sequence_size', type=int, default=3, help='The size of the sequence')
+    parser.add_argument('--sequence_size', type=int, default=4, help='The size of the sequences')
 
     parser.add_argument('--batch_size', type=int, default=20,                        
                             help='The size of the training batch')
@@ -107,8 +107,6 @@ if __name__ == "__main__":
 
     tokenizer = DataCreator(sentences, args.sequence_size)
 
-    del sentences
-
     data, labels = tokenizer.tokenize_sentences()
 
     print("Données tokenizées !")
@@ -124,11 +122,11 @@ if __name__ == "__main__":
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
     if args.model == 'LSTM':
-        model = LSTM(input_dim=len(data[0]), hidden_layer_size=100, output_size=len(labels[0]))
+        model = LSTM(input_dim=len(data[0]), hidden_dim=100, output_dim=len(labels[0]))
     elif args.model == 'RNN':
         model = RNN(input_dim=len(data[0]), neurons=30)
     elif args.model == 'GRU':
-        model = GRU() 
+        model = GRU(input_dim=len(data[0]), hidden_dim=100, output_dim=len(labels[0]))
 
     model_trainer = ModelTrainer(model=model,
                                 data_train=train_set,
@@ -149,3 +147,5 @@ if __name__ == "__main__":
         model_trainer.evaluate_on_test_set()
 
         model_trainer.plot_metrics()
+
+        torch.save(model_trainer.model.state_dict(), "saves/model")
