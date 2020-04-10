@@ -114,8 +114,8 @@ class ModelTrainer(object):
             self.writer.add_scalar('Loss/train', np.mean(train_losses), epoch)
             self.writer.add_scalar('Accuracy/train', np.mean(train_losses), epoch)
 
-            self.writer.add_scalar('Loss/validation', self.metric_values['val_loss'], epoch)
-            self.writer.add_scalar('Accuracy/validation', self.metric_values['val_acc'], epoch)
+            self.writer.add_scalar('Loss/validation', self.metric_values['val_loss'][-1], epoch)
+            self.writer.add_scalar('Accuracy/validation', self.metric_values['val_acc'][-1], epoch)
 
         print('Finished Training')
 
