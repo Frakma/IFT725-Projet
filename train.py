@@ -103,7 +103,7 @@ if __name__ == "__main__":
         sentences = pickle.load(f)
 
     random.seed(0)
-    sentences = random.sample(sentences, 10000)
+    sentences = random.sample(sentences, 50000)
 
     print("Sentences are extracted !")
 
