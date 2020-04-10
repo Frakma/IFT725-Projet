@@ -151,8 +151,7 @@ if __name__ == "__main__":
                                 batch_size=batch_size,
                                 validation=args.validation,
                                 use_cuda=True,
-                                log_dir=args.log_path,
-                                hparams=hparams)
+                                log_dir=args.log_path)
 
     if args.predict:        
         model_trainer.evaluate_on_test_set()
