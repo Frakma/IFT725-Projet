@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 #https://discuss.pytorch.org/t/nan-loss-in-rnn-model/655
+
 class RNN(nn.Module):
     def __init__(self, input_dim=500, hidden_dim=300, output_dim=100):
         super().__init__()
