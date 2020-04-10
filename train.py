@@ -84,20 +84,11 @@ if __name__ == "__main__":
         saving_path = "saves/english-reviews"
     
     #Extract the sentences
-    #extractor.index_all_files(directory)
-    #sentences = extractor.extract_sentences_indexed_files()
-
-    #with open(saving_path, "wb") as f:
-    #     pickle.dump(sentences, f)
-    # ###
-
-    # ## NOTE : à décommenter lorsqu'on charge des données existantes
-    with open(saving_path, "rb") as f:
-         sentences = pickle.load(f)
-    # ##
+    extractor.index_all_files(directory)
+    sentences = extractor.extract_sentences_indexed_files()
 
     random.seed(0)
-    #sentences = random.sample(sentences, 30000)    
+    sentences = random.sample(sentences, 30000)
 
     print("Sentences are extracted !")
 
