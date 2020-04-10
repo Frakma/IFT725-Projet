@@ -20,7 +20,8 @@ class ModelTrainer(object):
                  batch_size=1,
                  validation=None,
                  use_cuda=False,
-                 word2vec=None):        
+                 word2vec=None,
+                 cross_val_set=None):        
     
         device_name = 'cuda:0' if use_cuda else 'cpu'
         if use_cuda and not torch.cuda.is_available():
@@ -34,17 +35,19 @@ class ModelTrainer(object):
 
         if validation is not None:
             data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
-
             self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
-
             data_train = (data_train_X, data_train_y)
 
         if word2vec is not None:
             self.word2vec = word2vec
 
-        self.data_train = data.TensorDataset(torch.Tensor(data_train[0]),torch.Tensor(data_train[1]))
-            
+        self.data_train = data.TensorDataset(torch.Tensor(data_train[0]),torch.Tensor(data_train[1]))            
         self.data_test = data.TensorDataset(torch.Tensor(data_test[0]),torch.Tensor(data_test[1]))
+
+        if cross_val_set != None:
+            self.cross_data=data.TensorDataset(torch.Tensor(cross_val_set[0]),torch.Tensor(cross_val_set[1]))
+        else:
+            self.cross_data=None
 
         self.model = model        
         self.batch_size = batch_size
@@ -54,6 +57,7 @@ class ModelTrainer(object):
         self.model = self.model.to(self.device)
         self.use_cuda = use_cuda
         self.metric_values = {}
+        self.cross_val_set = cross_val_set
 
     def train(self, num_epochs):
 
@@ -103,6 +107,9 @@ class ModelTrainer(object):
             if self.validation is not None:
                 self.evaluate_on_validation_set()
 
+            elif self.cross_val_set is not None:
+                self.evaluate_on_validation_set()
+
         print('Finished Training')
 
     def accuracy(self, outputs, labels):
@@ -111,14 +118,17 @@ class ModelTrainer(object):
             acc.append(1/(1+torch.dist(predicted, label).item()))
         return sum(acc)/len(acc)
 
-    def evaluate_on_validation_set(self):
+    def evaluate_on_validation_set(self,val_set=None):
         self.model.eval()
 
         validation_loss = 0.0
         validation_losses = []
         validation_accuracies = []
 
-        validation_loader = DataLoader(self.data_validation, self.batch_size, shuffle=True)
+        if self.cross_data!=None: #for cross_validation            
+            validation_loader = DataLoader(self.cross_data, self.batch_size)
+        else:
+            validation_loader = DataLoader(self.data_validation, self.batch_size)
 
         with torch.no_grad():
             for j, data in enumerate(validation_loader, 0):
@@ -146,7 +156,7 @@ class ModelTrainer(object):
         """
         accuracies = 0
 
-        test_loader = DataLoader(self.data_test, self.batch_size, shuffle=True)
+        test_loader = DataLoader(self.data_test, self.batch_size)
 
         with torch.no_grad():
             for j, data in enumerate(test_loader, 0):
@@ -157,6 +167,9 @@ class ModelTrainer(object):
                 accuracies += self.accuracy(test_outputs, test_labels)
 
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
+    
+    def get_validation_loss(self):
+        return np.mean(self.metric_values['val_loss'])
 
     def plot_metrics(self):
         """
