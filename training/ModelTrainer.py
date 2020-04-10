@@ -112,7 +112,7 @@ class ModelTrainer(object):
                 self.evaluate_on_validation_set()
 
             self.writer.add_scalar('Loss/train', np.mean(train_losses), epoch)
-            self.writer.add_scalar('Accuracy/train', np.mean(train_losses), epoch)
+            self.writer.add_scalar('Accuracy/train', np.mean(train_accuracies), epoch)
 
             self.writer.add_scalar('Loss/validation', self.metric_values['val_loss'][-1], epoch)
             self.writer.add_scalar('Accuracy/validation', self.metric_values['val_acc'][-1], epoch)
