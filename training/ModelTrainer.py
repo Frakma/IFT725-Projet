@@ -175,7 +175,7 @@ class ModelTrainer(object):
 
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
 
-        return 100 * accuracies / len(test_loader)
+        return accuracies / len(test_loader)
     
     def get_validation_loss(self):
         return np.mean(self.metric_values['val_loss'])
