@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from typing import Callable, Type
 from sklearn.model_selection import train_test_split
+from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import  DataLoader
 from typing import Callable, Type
 from tqdm import tqdm
@@ -21,8 +22,11 @@ class ModelTrainer(object):
                  batch_size=1,
                  validation=None,
                  use_cuda=False,
-                 word2vec=None,
-                 cross_val_set=None):        
+                 cross_val_set=None,
+                 log_dir=None,
+                 hparams=None):
+
+        self.writer = SummaryWriter(log_dir=log_dir)
     
         device_name = 'cuda:0' if use_cuda else 'cpu'
         if use_cuda and not torch.cuda.is_available():
@@ -38,9 +42,6 @@ class ModelTrainer(object):
             data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
             self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
             data_train = (data_train_X, data_train_y)
-
-        if word2vec is not None:
-            self.word2vec = word2vec
 
         self.data_train = data.TensorDataset(torch.Tensor(data_train[0]),torch.Tensor(data_train[1]))            
         self.data_test = data.TensorDataset(torch.Tensor(data_test[0]),torch.Tensor(data_test[1]))
@@ -59,6 +60,8 @@ class ModelTrainer(object):
         self.use_cuda = use_cuda
         self.metric_values = {}
         self.cross_val_set = cross_val_set
+
+        self.hparams = hparams
 
     def train(self, num_epochs):
 
@@ -105,11 +108,17 @@ class ModelTrainer(object):
             self.metric_values['train_loss'].append(np.mean(train_losses))
             self.metric_values['train_acc'].append(np.mean(train_accuracies))
 
+
             if self.validation is not None:
                 self.evaluate_on_validation_set()
 
             elif self.cross_val_set is not None:
                 self.evaluate_on_validation_set()
+
+            self.writer.add_hparams(self.hparams,{"hparam/trainloss":self.metric_values['train_loss'][-1],
+                                                "hparam/train_accuracy":self.metric_values['train_acc'][-1],
+                                                "hparam/validation_loss":self.metric_values['val_loss'][-1],
+                                                "hparam/validation_accuracy":self.metric_values['val_acc'][-1]})
 
         print('Finished Training')
 

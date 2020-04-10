@@ -35,8 +35,8 @@ def argument_parser():
     parser = argparse.ArgumentParser(usage='\n python3 train.py [model] [dataset] [encoder] [hyper_parameters]',
                                      description="This program allows to train different models on"
                                                  " different datasets using different encoders. ")
-    parser.add_argument('--model', type=str, default="LSTM",
-                        choices=["LSTM", "RNN", "GRU"])
+
+    parser.add_argument('--model', type=str, default="LSTM", choices=["LSTM", "RNN", "GRU"])
 
     parser.add_argument('--datasets_path', type=str, default="./datasets")
 
@@ -46,20 +46,24 @@ def argument_parser():
 
     parser.add_argument('--sequence_size', type=int, default=5, help='The size of the sequences')
 
-    parser.add_argument('--batch_size', type=int, default=20,                        
-                            help='The size of the training batch')
-    parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"],
-                        help="The optimizer to use for training the model")
-    parser.add_argument('--num_epochs', type=int, default=20,
-                        help='The number of epochs')
-    parser.add_argument('--validation', type=float, default=0.1,
-                        help='Percentage of training data to use for validation')
-    parser.add_argument('--lr', type=float, default=0.001,
-                        help='Learning rate')
-    parser.add_argument('--cross-validation', type=int, default=0,
-                        help='Number of k in k-cross-validation')
-    parser.add_argument('--predict', action='store_true',
-                        help="Use model to predict the text")
+    parser.add_argument('--batch_size', type=int, default=20,help='The size of the training batch')
+
+    parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"], help="The optimizer to use for training the model")
+
+    parser.add_argument('--num_epochs', type=int, default=20, help='The number of epochs')
+
+    parser.add_argument('--validation', type=float, default=0.1, help='Percentage of training data to use for validation')
+
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+
+    parser.add_argument('--cross-validation', type=int, default=0, help='Number of k in k-cross-validation')
+
+    parser.add_argument('--predict', action='store_true', help="Use model to predict the text")
+
+    parser.add_argument('--hidden_layer_dim', type=int, default=100, help="The dimension of the hidden layer in models")
+
+    parser.add_argument('--log_path', type=str, default="runs/runX", help="The path where to save logs")
+
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -120,16 +124,24 @@ if __name__ == "__main__":
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
     if args.model == 'LSTM':
-        model = LSTM(input_dim=len(data[0]), hidden_dim=300, output_dim=len(labels[0]))
+        model = LSTM(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
+    elif args.model == 'GRU':
+        model = GRU(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
     elif args.model == 'RNN':
         model = RNN(input_dim=len(data[0]), neurons=30)
-    elif args.model == 'GRU':
-        model = GRU(input_dim=len(data[0]), hidden_dim=300, output_dim=len(labels[0]))
-
     
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
     train_set = train_data, train_labels
     test_set = test_data, test_labels
+
+    print(len(train_data))
+
+    hparams = {
+        "hidden_layer_dim" : args.hidden_layer_dim,
+        "learning_rate" : args.lr,
+        "batch_size" : args.batch_size,
+        "sequence_size" : args.sequence_size
+    }
                            
     model_trainer = ModelTrainer(model=model,
                                 data_train=train_set,
@@ -137,16 +149,17 @@ if __name__ == "__main__":
                                 loss_fn=nn.MSELoss(),
                                 optimizer_factory=optimizer_factory,
                                 batch_size=batch_size,
-                                word2vec=vectorizer.model,
                                 validation=args.validation,
-                                use_cuda=True)
+                                use_cuda=True,
+                                log_dir=args.log_path,
+                                hparams=hparams)
 
     if args.predict:        
         model_trainer.evaluate_on_test_set()
 
-    elif  args.cross_validation>0:
+    elif args.cross_validation > 0:
         k_losses=[]
-        kfold =KFold(n_splits=args.cross_validation)
+        kfold = KFold(n_splits=args.cross_validation)
         for train_index, val_index in kfold.split(train_data, train_labels):  
             val_index = [ int(x) for x in val_index ]
             train_index= [ int(x) for x in val_index ]
@@ -158,23 +171,27 @@ if __name__ == "__main__":
             cross_train= cross_train_data, cross_train_labels
             cross_val= cross_val_data, cross_val_labels
 
+            print(len(cross_train_data))
+
             model_trainer = ModelTrainer(model=model,
                                 data_train=cross_train,
                                 data_test=test_set,
                                 loss_fn=nn.MSELoss(),
                                 optimizer_factory=optimizer_factory,
                                 batch_size=batch_size,
-                                word2vec=vectorizer.model,
                                 use_cuda=True,
-                                cross_val_set=cross_val)
+                                cross_val_set=cross_val,
+                                log_dir=args.log_path,
+                                hparams=hparams)
 
             print("Entrainement {} sur {} pour {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
             model_trainer.train(num_epochs)
             k_losses.append(model_trainer.get_validation_loss())
         
-        print("Mean loss for cross validation : ",np.mean(k_losses))
+        print("Mean loss for cross validation : ", np.mean(k_losses))
     else:
         print("Entrainement {} sur {} pour {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
+
         model_trainer.train(num_epochs)
         model_trainer.evaluate_on_test_set()
 
