@@ -1,9 +1,10 @@
 class DataCreator:
     """Class with create training/test data with labels
     """
-    def __init__(self, sentences, length_train):
+    def __init__(self, sentences, length_train, max_sequence):
         self.sentences = sentences
         self.length_train = length_train
+        self.max_sequence = max_sequence
 
     def get_data_from_sentence(self, sentence):
         """Function which create data tokens and labels
@@ -44,11 +45,18 @@ class DataCreator:
         data = []
         labels = []
 
+        index = 0
+
         for sentence in self.sentences:
             data_tmp, label_tmp = self.get_data_from_sentence(sentence)
 
             if data_tmp != None and label_tmp != None:
                 data.extend(data_tmp)
                 labels.extend(label_tmp)
+
+                index += 1
+
+            if index >= self.max_sequence:
+                break
 
         return data, labels

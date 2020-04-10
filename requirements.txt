@@ -5,5 +5,4 @@ scikit-learn
 tqdm
 gensim
 typing
-pytorch-lightning
-torch_gpu
+torch
