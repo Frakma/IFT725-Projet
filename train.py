@@ -5,6 +5,7 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.autograd import Variable
 from training.ModelTrainer import ModelTrainer, optimizer_setup
 
 from sklearn.model_selection import train_test_split
@@ -12,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from models.LSTM import LSTM
 from models.RNN import RNN
 from models.GRU import GRU
+from models.ToyNN import ToyNN
 
 from sklearn.model_selection import KFold
 
@@ -46,11 +48,11 @@ def argument_parser():
 
     parser.add_argument('--sequence_size', type=int, default=5, help='The size of the sequences')
 
-    parser.add_argument('--batch_size', type=int, default=20,help='The size of the training batch')
+    parser.add_argument('--batch_size', type=int, default=50, help='The size of the training batch')
 
     parser.add_argument('--optimizer', type=str, default="Adam", choices=["Adam", "SGD"], help="The optimizer to use for training the model")
 
-    parser.add_argument('--num_epochs', type=int, default=20, help='The number of epochs')
+    parser.add_argument('--num_epochs', type=int, default=10, help='The number of epochs')
 
     parser.add_argument('--validation', type=float, default=0.1, help='Percentage of training data to use for validation')
 
@@ -78,21 +80,28 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    if args.dataset == "french-tragedies":
-        directory = join(data_dir, "livres-en-francais")
-        extractor = FrenchTextExtractor()
-        saving_path = "saves/livres-en-francais"
-    elif args.dataset == "english-reviews":
-        directory = join(data_dir, "critiques-imdb")
-        extractor = EnglishIMDB()
-        saving_path = "saves/english-reviews"
+    # if args.dataset == "french-tragedies":
+    #     directory = join(data_dir, "livres-en-francais")
+    #     extractor = FrenchTextExtractor()
+    #     saving_path = "saves/livres-en-francais"
+
+    # elif args.dataset == "english-reviews":
+    #     directory = join(data_dir, "critiques-imdb")
+    #     extractor = EnglishIMDB()
+    #     saving_path = "saves/english-reviews"
     
-    #Extract the sentences
-    extractor.index_all_files(directory)
-    sentences = extractor.extract_sentences_indexed_files()
+    # # #Extract the sentences
+    # extractor.index_all_files(directory)
+    # sentences = extractor.extract_sentences_indexed_files()
+
+    # with open("saves/sentences.save", 'wb') as f:
+    #     pickle.dump(sentences, f, pickle.HIGHEST_PROTOCOL)
+
+    with open("saves/sentences.save", 'rb') as f:
+        sentences = pickle.load(f)
 
     random.seed(0)
-    sentences = random.sample(sentences, 30000)
+    sentences = random.sample(sentences, 10000)
 
     print("Sentences are extracted !")
 
@@ -104,17 +113,15 @@ if __name__ == "__main__":
 
     vectorizer.create_vectorization(sentences)
 
-    print("Vectorization computed !")
+    sentences_indices = vectorizer.transform_sentences(sentences)
 
-    sentences = vectorizer.transform_sentences(sentences)
+    print("Vectorization computed !")    
 
-    print("Sentences vectorized !")
-
-    tokenizer = DataCreator(sentences, args.sequence_size, 500000)
+    tokenizer = DataCreator(sentences_indices, args.sequence_size)
 
     data, labels = tokenizer.tokenize_sentences()
 
-    del sentences
+    del sentences, sentences_indices
 
     print("Sequence tokens created !")
 
@@ -123,18 +130,18 @@ if __name__ == "__main__":
     elif args.optimizer == 'Adam':
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
-    if args.model == 'LSTM':
-        model = LSTM(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
-    elif args.model == 'GRU':
-        model = GRU(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
-    elif args.model == 'RNN':
-        model = RNN(input_dim=len(data[0]), neurons=30)
+    # if args.model == 'LSTM':
+    #     model = LSTM(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
+    # elif args.model == 'GRU':
+    #     model = GRU(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
+    # elif args.model == 'RNN':
+    #     model = RNN(input_dim=len(data[0]), neurons=30)
+
+    model = ToyNN(vectorizer.weights, args.hidden_layer_dim, 2, args.sequence_size)
     
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
     train_set = train_data, train_labels
     test_set = test_data, test_labels
-
-    print(len(train_data))
 
     hparams = {
         "hidden_layer_dim" : args.hidden_layer_dim,
@@ -146,19 +153,21 @@ if __name__ == "__main__":
     model_trainer = ModelTrainer(model=model,
                                 data_train=train_set,
                                 data_test=test_set,
-                                loss_fn=nn.MSELoss(),
+                                loss_fn=nn.CrossEntropyLoss(),
                                 optimizer_factory=optimizer_factory,
                                 batch_size=batch_size,
                                 validation=args.validation,
+                                sequence_size=args.sequence_size,
                                 use_cuda=True,
                                 log_dir=args.log_path)
 
-    if args.predict:        
+    if args.predict:
         model_trainer.evaluate_on_test_set()
 
     elif args.cross_validation > 0:
         k_losses=[]
         kfold = KFold(n_splits=args.cross_validation)
+
         for train_index, val_index in kfold.split(train_data, train_labels):  
             val_index = [ int(x) for x in val_index ]
             train_index= [ int(x) for x in val_index ]
@@ -170,15 +179,14 @@ if __name__ == "__main__":
             cross_train= cross_train_data, cross_train_labels
             cross_val= cross_val_data, cross_val_labels
 
-            print(len(cross_train_data))
-
             model_trainer = ModelTrainer(model=model,
                                 data_train=cross_train,
                                 data_test=test_set,
-                                loss_fn=nn.MSELoss(),
+                                loss_fn=nn.CrossEntropyLoss(),
                                 optimizer_factory=optimizer_factory,
                                 batch_size=batch_size,
                                 use_cuda=True,
+                                sequence_size=args.sequence_size,
                                 cross_val_set=cross_val,
                                 log_dir=args.log_path)
 

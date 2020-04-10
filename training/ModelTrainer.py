@@ -20,6 +20,7 @@ class ModelTrainer(object):
                  loss_fn: torch.nn.Module,
                  optimizer_factory: Callable[[torch.nn.Module], torch.optim.Optimizer],
                  batch_size=1,
+                 sequence_size=1,
                  validation=None,
                  use_cuda=False,
                  cross_val_set=None,
@@ -39,14 +40,14 @@ class ModelTrainer(object):
 
         if validation is not None:
             data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
-            self.data_validation = data.TensorDataset(torch.Tensor(data_validation_X),torch.Tensor(data_validation_y))
+            self.data_validation = data.TensorDataset(torch.LongTensor(data_validation_X),torch.LongTensor(data_validation_y))
             data_train = (data_train_X, data_train_y)
 
-        self.data_train = data.TensorDataset(torch.Tensor(data_train[0]),torch.Tensor(data_train[1]))            
-        self.data_test = data.TensorDataset(torch.Tensor(data_test[0]),torch.Tensor(data_test[1]))
+        self.data_train = data.TensorDataset(torch.LongTensor(data_train[0]),torch.LongTensor(data_train[1]))            
+        self.data_test = data.TensorDataset(torch.LongTensor(data_test[0]),torch.LongTensor(data_test[1]))
 
         if cross_val_set != None:
-            self.cross_data=data.TensorDataset(torch.Tensor(cross_val_set[0]),torch.Tensor(cross_val_set[1]))
+            self.cross_data=data.TensorDataset(torch.LongTensor(cross_val_set[0]),torch.LongTensor(cross_val_set[1]))
         else:
             self.cross_data=None
 
@@ -54,6 +55,7 @@ class ModelTrainer(object):
         self.batch_size = batch_size
         self.loss_fn = loss_fn
         self.optimizer = optimizer_factory(self.model)
+        self.sequence_size = sequence_size
 
         self.model = self.model.to(self.device)
         self.use_cuda = use_cuda
@@ -74,6 +76,8 @@ class ModelTrainer(object):
             print("Epoch: {} of {}".format(epoch + 1, num_epochs))
             train_loss = 0.0
 
+            hidden = self.model.init_hidden(self.batch_size).to(self.device)
+
             with tqdm(range(len(train_loader))) as t:
                 train_losses = []
                 train_accuracies = []
@@ -86,7 +90,7 @@ class ModelTrainer(object):
                     self.optimizer.zero_grad()
 
                     # forward + backward + optimize
-                    outputs = self.model(inputs)
+                    outputs, hidden = self.model(inputs, hidden)
 
                     loss = self.loss_fn(outputs, labels)
                     loss.backward(retain_graph=True)
@@ -120,10 +124,9 @@ class ModelTrainer(object):
         print('Finished Training')
 
     def accuracy(self, outputs, labels):
-        acc=[]
-        for predicted, label in zip(outputs, labels):
-            acc.append(1/(1+torch.dist(predicted, label).item()))
-        return sum(acc)/len(acc)
+        predicted = outputs.argmax(dim=1)
+        correct = (predicted == labels).sum().item()
+        return correct / labels.size(0)
 
     def evaluate_on_validation_set(self,val_set=None):
         self.model.eval()
@@ -137,11 +140,14 @@ class ModelTrainer(object):
         else:
             validation_loader = DataLoader(self.data_validation, self.batch_size)
 
+        hidden = self.model.init_hidden(self.batch_size).to(self.device)
+
         with torch.no_grad():
             for j, data in enumerate(validation_loader, 0):
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
-                outputs = self.model(inputs)
+                outputs, hidden = self.model(inputs, hidden)
+
                 loss = self.loss_fn(outputs, labels)
                 validation_losses.append(loss.item())
 
@@ -165,13 +171,17 @@ class ModelTrainer(object):
 
         test_loader = DataLoader(self.data_test, self.batch_size)
 
+        hidden = self.model.init_hidden(self.batch_size).to(self.device)
+
         with torch.no_grad():
             for j, data in enumerate(test_loader, 0):
                 test_inputs, test_labels = data[0].to(self.device), data[1].to(self.device)
 
-                test_outputs = self.model(test_inputs)
+                outputs = self.model(test_inputs, hidden)
 
-                accuracies += self.accuracy(test_outputs, test_labels)
+                loss = self.loss_fn(outputs, test_labels)
+
+                accuracies += self.accuracy(outputs, test_labels)
 
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
 

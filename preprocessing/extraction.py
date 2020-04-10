@@ -154,7 +154,7 @@ class EnglishIMDB(TextExtractor):
 
     def extract_sentences_from_text(self, text_data):
         # changer le regex pour prendre en compte qu'avec des ! ou ? il y a un espace avant
-        sentences = re.sub('['+self.end_sequence_chars+']', '\n', text_data).split('\n')
+        sentences = re.sub('['+self.end_sequence_chars+']', '\n', text_data.lower()).split('\n')
 
         splitter = re.compile("[, -;.()]")
 
