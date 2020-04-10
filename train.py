@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from models.LSTM import LSTM
 from models.RNN import RNN
 from models.GRU import GRU
-from models.ToyNN import ToyNN
+from models.ToyNN import GRU
 
 from sklearn.model_selection import KFold
 
@@ -57,6 +57,8 @@ def argument_parser():
     parser.add_argument('--validation', type=float, default=0.1, help='Percentage of training data to use for validation')
 
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+
+    parser.add_argument('--dropout', type=float, default=0, help='Dropout proba')
 
     parser.add_argument('--cross-validation', type=int, default=0, help='Number of k in k-cross-validation')
 
@@ -137,7 +139,7 @@ if __name__ == "__main__":
     # elif args.model == 'RNN':
     #     model = RNN(input_dim=len(data[0]), neurons=30)
 
-    model = ToyNN(vectorizer.weights, args.hidden_layer_dim, 2, args.sequence_size)
+    model = GRU(vectorizer.weights, args.hidden_layer_dim, 2, args.sequence_size, args.dropout)
     
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
     train_set = train_data, train_labels

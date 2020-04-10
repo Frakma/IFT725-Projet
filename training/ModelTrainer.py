@@ -76,7 +76,7 @@ class ModelTrainer(object):
             print("Epoch: {} of {}".format(epoch + 1, num_epochs))
             train_loss = 0.0
 
-            hidden = self.model.init_hidden(self.batch_size).to(self.device)
+            #hidden = self.model.init_hidden(self.batch_size).to(self.device)
 
             with tqdm(range(len(train_loader))) as t:
                 train_losses = []
@@ -90,7 +90,8 @@ class ModelTrainer(object):
                     self.optimizer.zero_grad()
 
                     # forward + backward + optimize
-                    outputs, hidden = self.model(inputs, hidden)
+                    #outputs, hidden = self.model(inputs, hidden)
+                    outputs = self.model(inputs)
 
                     loss = self.loss_fn(outputs, labels)
                     loss.backward(retain_graph=True)
@@ -140,13 +141,14 @@ class ModelTrainer(object):
         else:
             validation_loader = DataLoader(self.data_validation, self.batch_size)
 
-        hidden = self.model.init_hidden(self.batch_size).to(self.device)
+        #hidden = self.model.init_hidden(self.batch_size).to(self.device)
 
         with torch.no_grad():
             for j, data in enumerate(validation_loader, 0):
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
-                outputs, hidden = self.model(inputs, hidden)
+                #outputs, hidden = self.model(inputs, hidden)
+                outputs = self.model(inputs)
 
                 loss = self.loss_fn(outputs, labels)
                 validation_losses.append(loss.item())
@@ -171,13 +173,14 @@ class ModelTrainer(object):
 
         test_loader = DataLoader(self.data_test, self.batch_size)
 
-        hidden = self.model.init_hidden(self.batch_size).to(self.device)
+        #hidden = self.model.init_hidden(self.batch_size).to(self.device)
 
         with torch.no_grad():
             for j, data in enumerate(test_loader, 0):
                 test_inputs, test_labels = data[0].to(self.device), data[1].to(self.device)
 
-                outputs = self.model(test_inputs, hidden)
+                #outputs = self.model(test_inputs, hidden)
+                outputs = self.model(test_inputs)
 
                 loss = self.loss_fn(outputs, test_labels)
 
