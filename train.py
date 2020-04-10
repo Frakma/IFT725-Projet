@@ -181,8 +181,7 @@ if __name__ == "__main__":
                                 batch_size=batch_size,
                                 use_cuda=True,
                                 cross_val_set=cross_val,
-                                log_dir=args.log_path,
-                                hparams=hparams)
+                                log_dir=args.log_path)
 
             print("Entrainement {} sur {} pour {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
             model_trainer.train(num_epochs)
@@ -201,3 +200,7 @@ if __name__ == "__main__":
             pickle.dump(model_trainer.metric_values, f, pickle.HIGHEST_PROTOCOL)
 
         torch.save(model_trainer.model.state_dict(), "saves/model-"+str(args.model)+"-"+str(args.dataset)+"-"+str(args.sequence_size)+"-"+str(args.batch_size))
+
+    model_trainer.writer.add_hparams(hparams,{"train_accuracy":model_trainer.metric_values['train_acc'][-1],
+                                                "validation_accuracy":model_trainer.metric_values['val_acc'][-1],
+                                                "test_accuracy":model_trainer.evaluate_on_test_set()})

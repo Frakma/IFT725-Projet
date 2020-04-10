@@ -23,8 +23,7 @@ class ModelTrainer(object):
                  validation=None,
                  use_cuda=False,
                  cross_val_set=None,
-                 log_dir=None,
-                 hparams=None):
+                 log_dir=None):
 
         self.writer = SummaryWriter(log_dir=log_dir)
     
@@ -60,8 +59,6 @@ class ModelTrainer(object):
         self.use_cuda = use_cuda
         self.metric_values = {}
         self.cross_val_set = cross_val_set
-
-        self.hparams = hparams
 
     def train(self, num_epochs):
 
@@ -108,17 +105,17 @@ class ModelTrainer(object):
             self.metric_values['train_loss'].append(np.mean(train_losses))
             self.metric_values['train_acc'].append(np.mean(train_accuracies))
 
-
             if self.validation is not None:
                 self.evaluate_on_validation_set()
 
             elif self.cross_val_set is not None:
                 self.evaluate_on_validation_set()
 
-            self.writer.add_hparams(self.hparams,{"hparam/trainloss":self.metric_values['train_loss'][-1],
-                                                "hparam/train_accuracy":self.metric_values['train_acc'][-1],
-                                                "hparam/validation_loss":self.metric_values['val_loss'][-1],
-                                                "hparam/validation_accuracy":self.metric_values['val_acc'][-1]})
+            self.writer.add_scalar('Loss/train', np.mean(train_losses), epoch)
+            self.writer.add_scalar('Accuracy/train', np.mean(train_losses), epoch)
+
+            self.writer.add_scalar('Loss/validation', self.metric_values['val_loss'], epoch)
+            self.writer.add_scalar('Accuracy/validation', self.metric_values['val_acc'], epoch)
 
         print('Finished Training')
 
@@ -177,6 +174,8 @@ class ModelTrainer(object):
                 accuracies += self.accuracy(test_outputs, test_labels)
 
         print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
+
+        return 100 * accuracies / len(test_loader)
     
     def get_validation_loss(self):
         return np.mean(self.metric_values['val_loss'])
