@@ -2,7 +2,7 @@ from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
-
+import pickle
 from abc import ABC, abstractmethod 
 
 class Vectorizer(ABC):
@@ -76,19 +76,29 @@ class OneHotVectorizer(Vectorizer):
 
     def create_vectorization(self, sentences):
 
-        values = np.array(sentences)
+        """values = np.array(sentences)
 
         onehot_encoder = OneHotEncoder(sparse=False)
         onehot_encoder.fit(values)
 
+        self.model = onehot_encoder"""
+        values=[]
+        for i in range(len(sentences)):
+            values+=sentences[i]
+        values=np.array(values).reshape(-1,1)
+        onehot_encoder = OneHotEncoder(sparse=False)
+        onehot_encoder.fit(values)
         self.model = onehot_encoder
-        
     
     def save_vectorization(self):
-        joblib.dump(self.model, self.save_path)
+        pickle.dump(self.model, open(self.save_path, 'wb'))
 
     def load_vectorization(self):
-        self.model = joblib.load(self.save_path)
+        self.model = pickle.load(open(self.save_path, 'rb'))
         
     def transform_sentences(self, sentences):
-        return self.model.transform(np.array(sentences))
+        values=[]
+        for i in range(len(sentences)):
+            values+=sentences[i]
+        values=np.array(values).reshape(-1,1)
+        return self.model.transform(values)
