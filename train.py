@@ -118,11 +118,13 @@ if __name__ == "__main__":
 
     print("Sequence tokens created !")
 
+    #Optimizer choice
     if args.optimizer == 'SGD':
         optimizer_factory = optimizer_setup(torch.optim.SGD, lr=learning_rate, momentum=0.9)
     elif args.optimizer == 'Adam':
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
+    #Model choice
     if args.model == 'LSTM':
         model = LSTM(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
     elif args.model == 'GRU':
@@ -130,19 +132,22 @@ if __name__ == "__main__":
     elif args.model == 'RNN':
         model = RNN(input_dim=len(data[0]), neurons=30)
     
+    #Split data
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
     train_set = train_data, train_labels
     test_set = test_data, test_labels
 
     print(len(train_data))
 
+    #Setting hyperparams
     hparams = {
         "hidden_layer_dim" : args.hidden_layer_dim,
         "learning_rate" : args.lr,
         "batch_size" : args.batch_size,
         "sequence_size" : args.sequence_size
     }
-                           
+
+    #Training the model                   
     model_trainer = ModelTrainer(model=model,
                                 data_train=train_set,
                                 data_test=test_set,
@@ -182,13 +187,13 @@ if __name__ == "__main__":
                                 cross_val_set=cross_val,
                                 log_dir=args.log_path)
 
-            print("Entrainement {} sur {} pour {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
+            print("Training {} on {} for {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
             model_trainer.train(num_epochs)
             k_losses.append(model_trainer.get_validation_loss())
         
         print("Mean loss for cross validation : ", np.mean(k_losses))
     else:
-        print("Entrainement {} sur {} pour {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
+        print("Training {} on {} for {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
 
         model_trainer.train(num_epochs)
         model_trainer.evaluate_on_test_set()

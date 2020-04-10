@@ -55,6 +55,7 @@ class Vectorizer(ABC):
         return vectorized_sentences
 
 class Word2VecVectorizer(Vectorizer):
+    """Class to implement Word2Vec vectorizer"""
     def __init__(self, save_path):
         self.save_path = save_path
 
@@ -71,17 +72,11 @@ class Word2VecVectorizer(Vectorizer):
         return self.model[value]
 
 class OneHotVectorizer(Vectorizer):
+    """Class to implement Onhotencoding"""
     def __init__(self, save_path):
         self.save_path = save_path
 
     def create_vectorization(self, sentences):
-
-        """values = np.array(sentences)
-
-        onehot_encoder = OneHotEncoder(sparse=False)
-        onehot_encoder.fit(values)
-
-        self.model = onehot_encoder"""
         values=[]
         for i in range(len(sentences)):
             values+=sentences[i]

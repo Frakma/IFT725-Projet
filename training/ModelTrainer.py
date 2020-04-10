@@ -173,7 +173,7 @@ class ModelTrainer(object):
 
                 accuracies += self.accuracy(test_outputs, test_labels)
 
-        print("Accuracy sur l'ensemble de test: {:05.3f} %".format(100 * accuracies / len(test_loader)))
+        print("Accuracy on test set : {:05.3f} %".format(100 * accuracies / len(test_loader)))
 
         return accuracies / len(test_loader)
     
@@ -209,20 +209,20 @@ class ModelTrainer(object):
 
 def optimizer_setup(optimizer_class: Type[torch.optim.Optimizer], **hyperparameters) -> \
         Callable[[torch.nn.Module], torch.optim.Optimizer]:
+
     """
     Creates a factory method that can instanciate optimizer_class with the given
     hyperparameters.
-
     Why this? torch.optim.Optimizer takes the model's parameters as an argument.
     Thus we cannot pass an Optimizer to the CNNBase constructor.
-
     Args:
         optimizer_class: optimizer used to train the model
         **hyperparameters: hyperparameters for the model
         Returns:
             function to setup the optimizer
     """
-
+    
+    
     def f(model):
         return optimizer_class(model.parameters(), **hyperparameters)
 
