@@ -1,38 +1,21 @@
 import torch
 import torch.nn as nn
 
-
+#https://discuss.pytorch.org/t/nan-loss-in-rnn-model/655
 class RNN(nn.Module):
-    def __init__(self, input_dim=1, neurons=1):
-        super().__init__()        
-        self.w1 = torch.randn(input_dim, neurons) 
-        self.w2 = torch.randn(neurons, neurons)         
-        self.b = torch.zeros(1, neurons)
-    
-    def forward(self, input_seq):
-        n=len(input_seq)
-        self.Y=[]
-        self.Y.append(torch.tanh(torch.mm(input_seq[0], self.w1) + self.b))
-        for i in range(1,n):
-            self.Y.append(torch.tanh(torch.mm(self.Y[-1], self.w2) + torch.mm(input_seq[i], self.w1) + self.b))
-
-        return self.Y[-1]
-
-"""class RNN(nn.Module):
-    def __init__(self, batch_size, input_dim, n_neurons):
+    def __init__(self, input_dim=500, hidden_dim=300, output_dim=100):
         super().__init__()
-        
-        self.rnn = nn.RNNCell(input_dim, n_neurons)
-        self.hx = torch.randn(batch_size, n_neurons) # initialize hidden state
-        
-    def forward(self, X):
-        output = []
 
-        # for each time step
-        for i in range(2):
-            self.hx = self.rnn(X[i], self.hx)
-            output.append(self.hx)
-        
-        return output, self.hx"""
+        self.hidden_dim = hidden_dim
 
+        self.i2h = nn.Linear(input_dim + hidden_dim, hidden_dim)
+        self.i2o = nn.Linear(input_dim + hidden_dim, output_dim)
+        self.softmax = nn.LogSoftmax(dim=1)
 
+    def forward(self, input_seq):
+        hidden=torch.zeros(input_seq.shape[0], self.hidden_dim)
+        combined = torch.cat((input_seq, hidden), 1)
+        hidden = self.i2h(combined)
+        output = self.i2o(combined)
+        output = self.softmax(output)
+        return output
