@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-#https://discuss.pytorch.org/t/nan-loss-in-rnn-model/655
+#https://pytorch.org/tutorials/intermediate/char_rnn_classification_tutorial.html
 
 class RNN(nn.Module):
     def __init__(self, input_dim=500, hidden_dim=300, output_dim=100):
