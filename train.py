@@ -80,25 +80,19 @@ if __name__ == "__main__":
     val_set = args.validation
     learning_rate = args.lr
 
-    # if args.dataset == "french-tragedies":
-    #     directory = join(data_dir, "livres-en-francais")
-    #     extractor = FrenchTextExtractor()
-    #     saving_path = "saves/livres-en-francais"
+    if args.dataset == "french-tragedies":
+        directory = join(data_dir, "livres-en-francais")
+        extractor = FrenchTextExtractor()
+        saving_path = "saves/livres-en-francais"
 
-    # elif args.dataset == "english-reviews":
-    #     directory = join(data_dir, "critiques-imdb")
-    #     extractor = EnglishIMDB()
-    #     saving_path = "saves/english-reviews"
+    elif args.dataset == "english-reviews":
+        directory = join(data_dir, "critiques-imdb")
+        extractor = EnglishIMDB()
+        saving_path = "saves/english-reviews"
     
-    # # #Extract the sentences
-    # extractor.index_all_files(directory)
-    # sentences = extractor.extract_sentences_indexed_files()
-
-    # with open("saves/sentences.save", 'wb') as f:
-    #     pickle.dump(sentences, f, pickle.HIGHEST_PROTOCOL)
-
-    with open("saves/sentences.save", 'rb') as f:
-        sentences = pickle.load(f)
+    # #Extract the sentences
+    extractor.index_all_files(directory)
+    sentences = extractor.extract_sentences_indexed_files()
 
     random.seed(0)
     sentences = random.sample(sentences, 50000)
