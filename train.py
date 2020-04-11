@@ -188,6 +188,7 @@ if __name__ == "__main__":
 
             print("Training {} on {} for {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
             model_trainer.train(num_epochs)
+            print("Cross validation loss: ",model_trainer.get_validation_loss())
             k_losses.append(model_trainer.get_validation_loss())
         
         print("Mean loss for cross validation : ", np.mean(k_losses))
