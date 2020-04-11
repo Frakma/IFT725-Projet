@@ -10,9 +10,7 @@ from training.ModelTrainer import ModelTrainer, optimizer_setup
 
 from sklearn.model_selection import train_test_split
 
-from models.LSTM import LSTM
-from models.RNN import RNN
-from models.GRU import GRU
+from models.ToyNN import LSTM
 from models.ToyNN import GRU
 
 from sklearn.model_selection import KFold
@@ -132,14 +130,14 @@ if __name__ == "__main__":
     elif args.optimizer == 'Adam':
         optimizer_factory = optimizer_setup(optim.Adam, lr=learning_rate)
 
-    # if args.model == 'LSTM':
-    #     model = LSTM(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
-    # elif args.model == 'GRU':
-    #     model = GRU(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
-    # elif args.model == 'RNN':
-    #     model = RNN(input_dim=len(data[0]), neurons=30)
+    if args.model == 'LSTM':
+        model = LSTM(vectorizer.weights, args.hidden_layer_dim, 2, args.sequence_size, args.dropout)
+    elif args.model == 'GRU':
+        model = GRU(vectorizer.weights, args.hidden_layer_dim, 2, args.sequence_size, args.dropout)
+    elif args.model == 'RNN':
+        model = RNN(input_dim=len(data[0]), neurons=30)
 
-    model = GRU(vectorizer.weights, args.hidden_layer_dim, 2, args.sequence_size, args.dropout)
+    
     
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
     train_set = train_data, train_labels
