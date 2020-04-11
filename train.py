@@ -142,7 +142,9 @@ if __name__ == "__main__":
         "learning_rate" : args.lr,
         "batch_size" : args.batch_size,
         "sequence_size" : args.sequence_size,
-        "dropout"   : args.dropout
+        "dropout"   : args.dropout,
+        "model" : args.model,
+        "dataset" : args.dataset
     }
                            
     model_trainer = ModelTrainer(model=model,
