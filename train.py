@@ -147,7 +147,8 @@ if __name__ == "__main__":
         "hidden_layer_dim" : args.hidden_layer_dim,
         "learning_rate" : args.lr,
         "batch_size" : args.batch_size,
-        "sequence_size" : args.sequence_size
+        "sequence_size" : args.sequence_size,
+        "dropout"   : args.dropout
     }
                            
     model_trainer = ModelTrainer(model=model,
