@@ -130,7 +130,7 @@ if __name__ == "__main__":
     elif args.model == 'GRU':
         model = GRU(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
     elif args.model == 'RNN':
-        model = RNN(input_dim=len(data[0]), neurons=30)
+        model = RNN(input_dim=len(data[0]), hidden_dim=args.hidden_layer_dim, output_dim=len(labels[0]))
     
     #Split data
     train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
@@ -175,7 +175,6 @@ if __name__ == "__main__":
             cross_train= cross_train_data, cross_train_labels
             cross_val= cross_val_data, cross_val_labels
 
-            print(len(cross_train_data))
 
             model_trainer = ModelTrainer(model=model,
                                 data_train=cross_train,
