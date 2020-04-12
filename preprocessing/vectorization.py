@@ -58,9 +58,7 @@ class Word2VecVectorizer(Vectorizer):
     """Class to implement Word2Vec vectorizer"""
     def __init__(self, save_path):
         self.save_path = save_path
-
-    def create_vectorization(self, sentences):
-        self.model = Word2Vec(sentences, min_count=1)
+        self.index_word = dict()
     
     def save_vectorization(self):
         self.model.save(self.save_path)
@@ -69,7 +67,15 @@ class Word2VecVectorizer(Vectorizer):
         self.model = Word2Vec.load(self.save_path)
         
     def transform_value(self, value):
-        return self.model[value]
+        return self.index_word[value]
+
+    def create_vectorization(self, sentences):
+        self.model = Word2Vec(sentences, min_count=1)
+
+        self.weights = self.model.wv.vectors
+
+        for i, word in enumerate(self.model.wv.vocab):
+            self.index_word[word] = i
 
 class OneHotVectorizer(Vectorizer):
     """Class to implement Onhotencoding"""
