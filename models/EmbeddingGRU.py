@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.optim as optim
 
+
 class GRU(nn.Module):
     def __init__(self, weights_matrix, hidden_size, num_layers, sequence_size, dropout=0.2):
         super().__init__() 

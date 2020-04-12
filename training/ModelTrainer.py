@@ -26,6 +26,7 @@ class ModelTrainer(object):
                  cross_val_set=None,
                  log_dir=None):
 
+        # Object to write scalars for Tensorboard
         self.writer = SummaryWriter(log_dir=log_dir)
     
         device_name = 'cuda:0' if use_cuda else 'cpu'
