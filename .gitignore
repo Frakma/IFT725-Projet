@@ -3,4 +3,5 @@ saves
 models/__pycache__
 preprocessing/__pycache__
 training/__pycache__
+__pycache__
 runs
