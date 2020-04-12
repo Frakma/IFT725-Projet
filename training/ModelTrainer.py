@@ -39,6 +39,7 @@ class ModelTrainer(object):
         self.device = torch.device(device_name)
         self.validation=validation
 
+        # Training and validation data creation
         if validation is not None:
             data_train_X, data_validation_X, data_train_y, data_validation_y = train_test_split(data_train[0], data_train[1], test_size=0.1)
             self.data_validation = data.TensorDataset(torch.LongTensor(data_validation_X),torch.LongTensor(data_validation_y))

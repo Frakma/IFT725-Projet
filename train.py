@@ -196,6 +196,7 @@ if __name__ == "__main__":
             k_losses.append(model_trainer.get_validation_loss())
         
         print("Mean loss for cross validation : ", np.mean(k_losses))
+
     else:
         print("Training {} on {} for {} epochs".format(model.__class__.__name__, args.dataset, args.num_epochs))
 
@@ -209,6 +210,7 @@ if __name__ == "__main__":
 
         torch.save(model_trainer.model.state_dict(), "saves/model-"+str(args.model)+"-"+str(args.dataset)+"-"+str(args.sequence_size)+"-"+str(args.batch_size))
 
+    # Finally, save the metrics for the hyper-parameters research
     model_trainer.writer.add_hparams(hparams,{"train_accuracy":model_trainer.metric_values['train_acc'][-1],
                                                 "validation_accuracy":model_trainer.metric_values['val_acc'][-1],
                                                 "test_accuracy":model_trainer.evaluate_on_test_set()})
